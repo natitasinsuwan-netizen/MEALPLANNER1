@@ -1,0 +1,616 @@
+const DEFAULT_MEALS = [
+  {
+    "id": 1,
+    "name": "Pad Thai",
+    "description": "Stir-fried rice noodles with egg, tofu, peanuts, lime and tamarind sauce.",
+    "image_url": "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80",
+    "calories": 486, "fat_g": 14.0, "protein_g": 22.0, "carbs_g": 65.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stir-Fry"], "carbs": ["Noodles"], "protein": ["Egg", "Tofu"]},
+    "dietary_tags": ["halal"], "allergens": ["nuts", "egg", "soy"], "low_fat": false
+  },
+  {
+    "id": 2,
+    "name": "Tom Yum Goong",
+    "description": "Spicy and sour Thai soup with shrimp, lemongrass, kaffir lime and chili.",
+    "image_url": "https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=800&q=80",
+    "calories": 220, "fat_g": 6.0, "protein_g": 24.0, "carbs_g": 12.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Seafood"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["shellfish"], "low_fat": true
+  },
+  {
+    "id": 3,
+    "name": "Green Curry Chicken",
+    "description": "Aromatic Thai green curry with chicken, eggplant and Thai basil in coconut milk.",
+    "image_url": "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=800&q=80",
+    "calories": 420, "fat_g": 22.0, "protein_g": 28.0, "carbs_g": 28.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 4,
+    "name": "Som Tum (Papaya Salad)",
+    "description": "Refreshing spicy green papaya salad with lime, chili, peanuts and fish sauce.",
+    "image_url": "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&q=80",
+    "calories": 150, "fat_g": 4.0, "protein_g": 5.0, "carbs_g": 25.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Seafood"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["nuts", "shellfish"], "low_fat": true
+  },
+  {
+    "id": 5,
+    "name": "Massaman Curry",
+    "description": "Rich Thai-Muslim curry with beef, potato, peanuts and warm spices.",
+    "image_url": "https://images.unsplash.com/photo-1604908554049-29cca5689e15?w=800&q=80",
+    "calories": 540, "fat_g": 30.0, "protein_g": 32.0, "carbs_g": 35.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["nuts"], "low_fat": false
+  },
+  {
+    "id": 6,
+    "name": "Khao Soi",
+    "description": "Northern Thai coconut curry noodle soup topped with crispy egg noodles.",
+    "image_url": "https://images.unsplash.com/photo-1594998893017-36147cbcae05?w=800&q=80",
+    "calories": 520, "fat_g": 24.0, "protein_g": 26.0, "carbs_g": 52.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Boil"], "carbs": ["Noodles"], "protein": ["Chicken"]},
+    "dietary_tags": ["halal"], "allergens": ["gluten", "egg"], "low_fat": false
+  },
+  {
+    "id": 7,
+    "name": "Pad Kra Pao Moo",
+    "description": "Holy basil stir-fried minced pork served over hot jasmine rice with fried egg.",
+    "image_url": "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=800&q=80",
+    "calories": 560, "fat_g": 26.0, "protein_g": 34.0, "carbs_g": 48.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stir-Fry"], "carbs": ["Rice"], "protein": ["Pork", "Egg"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["egg", "soy"], "low_fat": false
+  },
+  {
+    "id": 8,
+    "name": "Panang Curry Pork",
+    "description": "Thick, creamy red curry with tender pork slices and finely sliced kaffir lime leaves.",
+    "image_url": "https://images.unsplash.com/photo-1548946526-f69e2424cf45?w=800&q=80",
+    "calories": 480, "fat_g": 28.0, "protein_g": 30.0, "carbs_g": 22.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Pork"]},
+    "dietary_tags": ["gluten-free", "dairy-free"], "allergens": ["nuts"], "low_fat": false
+  },
+  {
+    "id": 9,
+    "name": "Tom Kha Gai",
+    "description": "Creamy coconut milk soup with chicken, galangal, lemongrass and mushrooms.",
+    "image_url": "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&q=80",
+    "calories": 310, "fat_g": 18.0, "protein_g": 22.0, "carbs_g": 14.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 10,
+    "name": "Pad See Ew",
+    "description": "Stir-fried wide flat rice noodles with Chinese broccoli, pork and sweet dark soy sauce.",
+    "image_url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80",
+    "calories": 510, "fat_g": 18.0, "protein_g": 28.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stir-Fry"], "carbs": ["Noodles"], "protein": ["Pork", "Egg"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["gluten", "soy", "egg"], "low_fat": false
+  },
+  {
+    "id": 11,
+    "name": "Thai Fried Rice (Khao Pad)",
+    "description": "Jasmine fried rice with egg, spring onions, garlic and sliced chicken breast.",
+    "image_url": "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800&q=80",
+    "calories": 470, "fat_g": 14.0, "protein_g": 25.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stir-Fry"], "carbs": ["Rice"], "protein": ["Chicken", "Egg"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["egg", "soy"], "low_fat": false
+  },
+  {
+    "id": 12,
+    "name": "Mango Sticky Rice",
+    "description": "Sweet coconut-infused glutinous rice served with ripe golden mango slices.",
+    "image_url": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=800&q=80",
+    "calories": 390, "fat_g": 10.0, "protein_g": 4.0, "carbs_g": 72.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Steam"], "carbs": ["Rice"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 13,
+    "name": "Larb Gai (Minced Chicken Salad)",
+    "description": "Zesty northeastern Thai salad with mint, shallots, toasted rice powder and lime.",
+    "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
+    "calories": 240, "fat_g": 8.0, "protein_g": 32.0, "carbs_g": 10.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 14,
+    "name": "Moo Ping (Grilled Pork Skewers)",
+    "description": "Marinated garlic coriander coconut milk grilled pork skewers with sticky rice.",
+    "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+    "calories": 360, "fat_g": 18.0, "protein_g": 24.0, "carbs_g": 24.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Grill"], "carbs": ["Rice"], "protein": ["Pork"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy"], "low_fat": false
+  },
+  {
+    "id": 15,
+    "name": "Steamed Sea Bass with Lime Garlic",
+    "description": "Whole sea bass steamed in a spicy sour broth of fresh lime juice, garlic and chilies.",
+    "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80",
+    "calories": 260, "fat_g": 6.0, "protein_g": 42.0, "carbs_g": 8.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Steam"], "carbs": ["Low-Carb"], "protein": ["Fish"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["fish"], "low_fat": true
+  },
+  {
+    "id": 16,
+    "name": "Tonkotsu Ramen",
+    "description": "Rich pork bone broth ramen with chashu, soft egg, nori and fresh scallions.",
+    "image_url": "https://images.unsplash.com/photo-1591814468924-caf88d1232e1?w=800&q=80",
+    "calories": 600, "fat_g": 26.0, "protein_g": 30.0, "carbs_g": 60.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Boil"], "carbs": ["Noodles"], "protein": ["Pork", "Egg"]},
+    "dietary_tags": [], "allergens": ["gluten", "egg", "soy"], "low_fat": false
+  },
+  {
+    "id": 17,
+    "name": "Salmon Sashimi Bowl",
+    "description": "Fresh sliced Atlantic salmon over seasoned sushi rice with nori and sesame.",
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
+    "calories": 410, "fat_g": 14.0, "protein_g": 32.0, "carbs_g": 38.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Steam"], "carbs": ["Rice"], "protein": ["Fish"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["soy", "fish", "sesame"], "low_fat": true
+  },
+  {
+    "id": 18,
+    "name": "Chicken Teriyaki Don",
+    "description": "Glazed grilled chicken breast with sweet mirin soy glaze served over steamed rice.",
+    "image_url": "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&q=80",
+    "calories": 450, "fat_g": 14.0, "protein_g": 35.0, "carbs_g": 45.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Grill"], "carbs": ["Rice"], "protein": ["Chicken"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["soy", "gluten", "sesame"], "low_fat": true
+  },
+  {
+    "id": 19,
+    "name": "Shrimp Tempura Udon",
+    "description": "Crisp golden shrimp tempura over thick wheat udon noodles in rich dashi broth.",
+    "image_url": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80",
+    "calories": 480, "fat_g": 15.0, "protein_g": 22.0, "carbs_g": 64.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Fry"], "carbs": ["Noodles"], "protein": ["Seafood"]},
+    "dietary_tags": ["halal"], "allergens": ["gluten", "shellfish", "soy"], "low_fat": false
+  },
+  {
+    "id": 20,
+    "name": "Chicken Katsu Curry",
+    "description": "Crispy panko-breaded fried chicken cutlet over rice with savory Japanese curry.",
+    "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800&q=80",
+    "calories": 670, "fat_g": 26.0, "protein_g": 36.0, "carbs_g": 72.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Fry"], "carbs": ["Rice"], "protein": ["Chicken"]},
+    "dietary_tags": ["halal"], "allergens": ["gluten", "egg", "soy"], "low_fat": false
+  },
+  {
+    "id": 21,
+    "name": "Unagi Kabayaki (Grilled Eel)",
+    "description": "Tender grilled freshwater eel basted in rich caramelized soy tare over rice.",
+    "image_url": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80",
+    "calories": 530, "fat_g": 20.0, "protein_g": 28.0, "carbs_g": 58.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Grill"], "carbs": ["Rice"], "protein": ["Fish"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy", "gluten", "fish"], "low_fat": false
+  },
+  {
+    "id": 22,
+    "name": "Miso Salmon & Edamame",
+    "description": "White miso marinated baked salmon fillet served with steamed edamame and brown rice.",
+    "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&q=80",
+    "calories": 420, "fat_g": 16.0, "protein_g": 36.0, "carbs_g": 32.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Bake"], "carbs": ["Rice"], "protein": ["Fish"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["soy", "fish"], "low_fat": true
+  },
+  {
+    "id": 23,
+    "name": "Bibimbap",
+    "description": "Korean sizzling rice bowl with seasoned vegetables, bulgogi beef, egg and gochujang.",
+    "image_url": "https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=800&q=80",
+    "calories": 490, "fat_g": 15.0, "protein_g": 24.0, "carbs_g": 60.0,
+    "keywords": {"countries": ["Korean"], "cooking_methods": ["Stir-Fry"], "carbs": ["Rice"], "protein": ["Beef", "Egg"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["egg", "soy", "sesame"], "low_fat": true
+  },
+  {
+    "id": 24,
+    "name": "Korean BBQ Galbi",
+    "description": "Sweet and savory soy-marinated beef short ribs grilled to smoky perfection.",
+    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80",
+    "calories": 580, "fat_g": 32.0, "protein_g": 40.0, "carbs_g": 32.0,
+    "keywords": {"countries": ["Korean"], "cooking_methods": ["Grill"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy", "sesame", "gluten"], "low_fat": false
+  },
+  {
+    "id": 25,
+    "name": "Kimchi Jjigae (Kimchi Stew)",
+    "description": "Rich, spicy fermented kimchi stew with silken tofu, pork belly and scallions.",
+    "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80",
+    "calories": 340, "fat_g": 16.0, "protein_g": 24.0, "carbs_g": 25.0,
+    "keywords": {"countries": ["Korean"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Pork", "Tofu"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy", "sesame"], "low_fat": false
+  },
+  {
+    "id": 26,
+    "name": "Korean Fried Chicken (Yangnyeom)",
+    "description": "Ultra-crispy double-fried chicken tossed in sweet, tangy and spicy chili glaze.",
+    "image_url": "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800&q=80",
+    "calories": 620, "fat_g": 28.0, "protein_g": 38.0, "carbs_g": 54.0,
+    "keywords": {"countries": ["Korean"], "cooking_methods": ["Fry"], "carbs": ["Low-Carb"], "protein": ["Chicken"]},
+    "dietary_tags": ["halal"], "allergens": ["gluten", "soy", "sesame"], "low_fat": false
+  },
+  {
+    "id": 27,
+    "name": "Sundubu Jjigae (Soft Tofu Stew)",
+    "description": "Hot and bubbling spicy soft tofu stew with shrimp, clams and egg.",
+    "image_url": "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80",
+    "calories": 280, "fat_g": 12.0, "protein_g": 22.0, "carbs_g": 18.0,
+    "keywords": {"countries": ["Korean"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Tofu", "Seafood", "Egg"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy", "shellfish", "egg", "sesame"], "low_fat": true
+  },
+  {
+    "id": 28,
+    "name": "Kung Pao Chicken",
+    "description": "Classic Szechuan stir-fry with diced chicken, crunchy peanuts, chili peppers and scallions.",
+    "image_url": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=800&q=80",
+    "calories": 480, "fat_g": 22.0, "protein_g": 36.0, "carbs_g": 34.0,
+    "keywords": {"countries": ["Chinese"], "cooking_methods": ["Stir-Fry"], "carbs": ["Rice"], "protein": ["Chicken"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["nuts", "soy", "gluten"], "low_fat": false
+  },
+  {
+    "id": 29,
+    "name": "Dim Sum Pork Shumai",
+    "description": "Steamed open-topped dumplings filled with seasoned ground pork, shrimp and shiitake.",
+    "image_url": "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=800&q=80",
+    "calories": 320, "fat_g": 12.0, "protein_g": 20.0, "carbs_g": 30.0,
+    "keywords": {"countries": ["Chinese"], "cooking_methods": ["Steam"], "carbs": ["Low-Carb"], "protein": ["Pork", "Seafood"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["gluten", "shellfish", "soy", "sesame"], "low_fat": true
+  },
+  {
+    "id": 30,
+    "name": "Beef Chow Fun",
+    "description": "Cantonese stir-fried wide flat rice noodles with tender flank steak, bean sprouts and scallions.",
+    "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=800&q=80",
+    "calories": 540, "fat_g": 18.0, "protein_g": 32.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Chinese"], "cooking_methods": ["Stir-Fry"], "carbs": ["Noodles"], "protein": ["Beef"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["soy", "gluten"], "low_fat": false
+  },
+  {
+    "id": 31,
+    "name": "Mapo Tofu",
+    "description": "Silken tofu set in spicy and numbing chili bean paste with minced beef and Sichuan pepper.",
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
+    "calories": 380, "fat_g": 20.0, "protein_g": 24.0, "carbs_g": 26.0,
+    "keywords": {"countries": ["Chinese"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Tofu", "Beef"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["soy", "sesame"], "low_fat": false
+  },
+  {
+    "id": 32,
+    "name": "Steamed Ginger Scallion Fish",
+    "description": "Delicate white fish fillets steamed with fresh julienned ginger, scallions and hot sesame soy oil.",
+    "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80",
+    "calories": 250, "fat_g": 8.0, "protein_g": 36.0, "carbs_g": 6.0,
+    "keywords": {"countries": ["Chinese"], "cooking_methods": ["Steam"], "carbs": ["Low-Carb"], "protein": ["Fish"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["fish", "soy", "sesame"], "low_fat": true
+  },
+  {
+    "id": 33,
+    "name": "Vietnamese Pho Bo (Beef Pho)",
+    "description": "Fragrant 12-hour spiced beef bone broth with flat rice noodles, rare beef, herbs and lime.",
+    "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80",
+    "calories": 420, "fat_g": 10.0, "protein_g": 30.0, "carbs_g": 52.0,
+    "keywords": {"countries": ["Vietnamese"], "cooking_methods": ["Boil"], "carbs": ["Noodles"], "protein": ["Beef"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 34,
+    "name": "Vietnamese Banh Mi Pork",
+    "description": "Crispy French baguette filled with seasoned roast pork, pickled daikon, pate, cucumber and cilantro.",
+    "image_url": "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&q=80",
+    "calories": 490, "fat_g": 18.0, "protein_g": 26.0, "carbs_g": 56.0,
+    "keywords": {"countries": ["Vietnamese"], "cooking_methods": ["Bake"], "carbs": ["Bread"], "protein": ["Pork"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["gluten", "soy"], "low_fat": false
+  },
+  {
+    "id": 35,
+    "name": "Fresh Spring Rolls (Goi Cuon)",
+    "description": "Translucent rice paper rolls filled with poached shrimp, fresh mint, lettuce and vermicelli.",
+    "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
+    "calories": 210, "fat_g": 3.0, "protein_g": 16.0, "carbs_g": 30.0,
+    "keywords": {"countries": ["Vietnamese"], "cooking_methods": ["Steam"], "carbs": ["Low-Carb"], "protein": ["Seafood"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["shellfish", "nuts"], "low_fat": true
+  },
+  {
+    "id": 36,
+    "name": "Bun Cha Hanoi (Grilled Pork)",
+    "description": "Caramelized grilled pork patties in tangy dipping broth served with rice vermicelli and greens.",
+    "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+    "calories": 460, "fat_g": 16.0, "protein_g": 28.0, "carbs_g": 50.0,
+    "keywords": {"countries": ["Vietnamese"], "cooking_methods": ["Grill"], "carbs": ["Noodles"], "protein": ["Pork"]},
+    "dietary_tags": ["gluten-free", "dairy-free"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 37,
+    "name": "Butter Chicken (Murgh Makhani)",
+    "description": "Tender tandoori chicken simmered in a velvety spiced tomato, butter and cream gravy.",
+    "image_url": "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=800&q=80",
+    "calories": 540, "fat_g": 28.0, "protein_g": 36.0, "carbs_g": 34.0,
+    "keywords": {"countries": ["Indian"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "halal"], "allergens": ["dairy", "nuts"], "low_fat": false
+  },
+  {
+    "id": 38,
+    "name": "Chicken Tikka Masala",
+    "description": "Roasted marinated chicken pieces cooked in a creamy spiced curry with garlic naan.",
+    "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&q=80",
+    "calories": 510, "fat_g": 22.0, "protein_g": 38.0, "carbs_g": 40.0,
+    "keywords": {"countries": ["Indian"], "cooking_methods": ["Grill"], "carbs": ["Bread"], "protein": ["Chicken"]},
+    "dietary_tags": ["halal"], "allergens": ["dairy", "gluten"], "low_fat": false
+  },
+  {
+    "id": 39,
+    "name": "Palak Paneer",
+    "description": "Cottage cheese cubes bathed in smooth puréed spiced spinach gravy with cumin seeds.",
+    "image_url": "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80",
+    "calories": 380, "fat_g": 24.0, "protein_g": 18.0, "carbs_g": 22.0,
+    "keywords": {"countries": ["Indian"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegetarian", "gluten-free", "halal", "kosher"], "allergens": ["dairy"], "low_fat": false
+  },
+  {
+    "id": 40,
+    "name": "Lamb Biryani",
+    "description": "Fragrant basmati rice layered with slow-cooked spiced lamb shank, saffron and fried onions.",
+    "image_url": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80",
+    "calories": 640, "fat_g": 26.0, "protein_g": 38.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Indian"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["gluten-free", "halal"], "allergens": ["dairy", "nuts"], "low_fat": false
+  },
+  {
+    "id": 41,
+    "name": "Chana Masala (Chickpea Curry)",
+    "description": "Hearty chickpeas simmered in zesty tomato-onion masala infused with ginger and cilantro.",
+    "image_url": "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&q=80",
+    "calories": 320, "fat_g": 8.0, "protein_g": 15.0, "carbs_g": 48.0,
+    "keywords": {"countries": ["Indian"], "cooking_methods": ["Boil"], "carbs": ["Rice"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "gluten-free", "dairy-free", "halal", "kosher"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 42,
+    "name": "Chicken Tacos Al Pastor",
+    "description": "Warm corn tortillas with citrus-marinated grilled chicken, roasted pineapple, salsa and cilantro.",
+    "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80",
+    "calories": 380, "fat_g": 14.0, "protein_g": 26.0, "carbs_g": 38.0,
+    "keywords": {"countries": ["Mexican"], "cooking_methods": ["Grill"], "carbs": ["Bread"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 43,
+    "name": "Beef Barbacoa Burrito Bowl",
+    "description": "Slow-braised shredded Mexican beef with cilantro-lime rice, black beans, pico de gallo and guacamole.",
+    "image_url": "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=800&q=80",
+    "calories": 520, "fat_g": 20.0, "protein_g": 38.0, "carbs_g": 48.0,
+    "keywords": {"countries": ["Mexican"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 44,
+    "name": "Fish Tacos Baja Style",
+    "description": "Crisp battered fish inside soft tortillas with shredded cabbage slaw and chipotle crema.",
+    "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&q=80",
+    "calories": 420, "fat_g": 16.0, "protein_g": 24.0, "carbs_g": 44.0,
+    "keywords": {"countries": ["Mexican"], "cooking_methods": ["Fry"], "carbs": ["Bread"], "protein": ["Fish"]},
+    "dietary_tags": ["halal"], "allergens": ["gluten", "fish", "dairy"], "low_fat": true
+  },
+  {
+    "id": 45,
+    "name": "Chicken Fajitas",
+    "description": "Sizzling seasoned chicken strips with charred bell peppers, onions, salsa and warm tortillas.",
+    "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80",
+    "calories": 430, "fat_g": 14.0, "protein_g": 35.0, "carbs_g": 40.0,
+    "keywords": {"countries": ["Mexican"], "cooking_methods": ["Stir-Fry"], "carbs": ["Bread"], "protein": ["Chicken"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["gluten"], "low_fat": true
+  },
+  {
+    "id": 46,
+    "name": "Classic Spaghetti Carbonara",
+    "description": "Al dente spaghetti tossed with crispy guanciale, pecorino romano cheese and rich egg yolks.",
+    "image_url": "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&q=80",
+    "calories": 580, "fat_g": 24.0, "protein_g": 26.0, "carbs_g": 64.0,
+    "keywords": {"countries": ["Italian"], "cooking_methods": ["Boil"], "carbs": ["Pasta"], "protein": ["Pork", "Egg"]},
+    "dietary_tags": [], "allergens": ["gluten", "dairy", "egg"], "low_fat": false
+  },
+  {
+    "id": 47,
+    "name": "Margherita Wood-Fired Pizza",
+    "description": "Neapolitan crust topped with sweet San Marzano tomato sauce, fresh buffalo mozzarella and basil.",
+    "image_url": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&q=80",
+    "calories": 620, "fat_g": 22.0, "protein_g": 24.0, "carbs_g": 80.0,
+    "keywords": {"countries": ["Italian"], "cooking_methods": ["Bake"], "carbs": ["Bread"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegetarian", "kosher"], "allergens": ["gluten", "dairy"], "low_fat": false
+  },
+  {
+    "id": 48,
+    "name": "Penne all'Arrabbiata",
+    "description": "Penne pasta in fiery spicy garlic and red chili tomato sauce with fresh Italian parsley.",
+    "image_url": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80",
+    "calories": 380, "fat_g": 8.0, "protein_g": 12.0, "carbs_g": 66.0,
+    "keywords": {"countries": ["Italian"], "cooking_methods": ["Boil"], "carbs": ["Pasta"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "dairy-free", "halal", "kosher"], "allergens": ["gluten"], "low_fat": true
+  },
+  {
+    "id": 49,
+    "name": "Creamy Mushroom Risotto",
+    "description": "Slow-stirred arborio rice with porcini mushrooms, white wine, parmesan and fresh thyme.",
+    "image_url": "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=800&q=80",
+    "calories": 440, "fat_g": 16.0, "protein_g": 12.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Italian"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegetarian", "gluten-free", "kosher"], "allergens": ["dairy"], "low_fat": false
+  },
+  {
+    "id": 50,
+    "name": "Grilled Salmon & Quinoa",
+    "description": "Pan-seared Atlantic salmon fillet served over lemon herb quinoa with roasted asparagus.",
+    "image_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80",
+    "calories": 430, "fat_g": 16.0, "protein_g": 38.0, "carbs_g": 32.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Grill"], "carbs": ["Rice"], "protein": ["Fish"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["fish"], "low_fat": true
+  },
+  {
+    "id": 51,
+    "name": "Classic Cheeseburger",
+    "description": "Grilled prime beef patty with cheddar cheese, crisp lettuce, tomato and pickles in brioche bun.",
+    "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80",
+    "calories": 650, "fat_g": 34.0, "protein_g": 36.0, "carbs_g": 48.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Grill"], "carbs": ["Bread"], "protein": ["Beef"]},
+    "dietary_tags": [], "allergens": ["gluten", "dairy", "sesame"], "low_fat": false
+  },
+  {
+    "id": 52,
+    "name": "Grilled Lemon Herb Chicken Breast",
+    "description": "Lean grilled chicken breast with garlic herb marinade served with steamed broccoli.",
+    "image_url": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=800&q=80",
+    "calories": 310, "fat_g": 7.0, "protein_g": 45.0, "carbs_g": 8.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Grill"], "carbs": ["Low-Carb"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 53,
+    "name": "BBQ Pulled Pork Sandwich",
+    "description": "Slow-smoked tender pulled pork with smoky barbecue sauce and coleslaw in a toasted bun.",
+    "image_url": "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800&q=80",
+    "calories": 590, "fat_g": 24.0, "protein_g": 38.0, "carbs_g": 52.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Smoke"], "carbs": ["Bread"], "protein": ["Pork"]},
+    "dietary_tags": ["dairy-free"], "allergens": ["gluten"], "low_fat": false
+  },
+  {
+    "id": 54,
+    "name": "Caesar Salad with Grilled Chicken",
+    "description": "Crisp romaine hearts, shaved parmesan, garlic croutons and grilled chicken breast.",
+    "image_url": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800&q=80",
+    "calories": 390, "fat_g": 18.0, "protein_g": 36.0, "carbs_g": 18.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Grill"], "carbs": ["Low-Carb"], "protein": ["Chicken"]},
+    "dietary_tags": ["halal"], "allergens": ["dairy", "gluten", "fish", "egg"], "low_fat": true
+  },
+  {
+    "id": 55,
+    "name": "Beef Bourguignon",
+    "description": "Classic French beef stew braised in red wine with pearl onions, carrots and button mushrooms.",
+    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80",
+    "calories": 530, "fat_g": 22.0, "protein_g": 42.0, "carbs_g": 32.0,
+    "keywords": {"countries": ["French"], "cooking_methods": ["Stew"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["dairy-free"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 56,
+    "name": "Ratatouille",
+    "description": "Provençal layered vegetable dish with zucchini, eggplant, bell peppers and aromatic herbes de Provence.",
+    "image_url": "https://images.unsplash.com/photo-1572441713132-c542fc4fe282?w=800&q=80",
+    "calories": 180, "fat_g": 8.0, "protein_g": 4.0, "carbs_g": 24.0,
+    "keywords": {"countries": ["French"], "cooking_methods": ["Bake"], "carbs": ["Low-Carb"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "gluten-free", "dairy-free", "halal", "kosher"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 57,
+    "name": "French Onion Soup",
+    "description": "Caramelized onion soup in rich beef broth topped with toasted baguette and melted Gruyère cheese.",
+    "image_url": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80",
+    "calories": 360, "fat_g": 16.0, "protein_g": 14.0, "carbs_g": 38.0,
+    "keywords": {"countries": ["French"], "cooking_methods": ["Bake"], "carbs": ["Bread"], "protein": ["Beef"]},
+    "dietary_tags": [], "allergens": ["dairy", "gluten"], "low_fat": true
+  },
+  {
+    "id": 58,
+    "name": "Spanish Seafood Paella",
+    "description": "Saffron-scented Spanish bomba rice cooked in a wide pan with shrimp, mussels, calamari and peppers.",
+    "image_url": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=800&q=80",
+    "calories": 510, "fat_g": 14.0, "protein_g": 32.0, "carbs_g": 62.0,
+    "keywords": {"countries": ["Spanish"], "cooking_methods": ["Boil"], "carbs": ["Rice"], "protein": ["Seafood"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["shellfish", "fish"], "low_fat": true
+  },
+  {
+    "id": 59,
+    "name": "Gambas al Ajillo (Garlic Shrimp)",
+    "description": "Juicy shrimp sizzling in olive oil infused with lots of garlic, smoked paprika and chili flakes.",
+    "image_url": "https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=800&q=80",
+    "calories": 320, "fat_g": 18.0, "protein_g": 26.0, "carbs_g": 8.0,
+    "keywords": {"countries": ["Spanish"], "cooking_methods": ["Stir-Fry"], "carbs": ["Bread"], "protein": ["Seafood"]},
+    "dietary_tags": ["gluten-free", "dairy-free", "halal"], "allergens": ["shellfish"], "low_fat": false
+  },
+  {
+    "id": 60,
+    "name": "Lebanese Chicken Shawarma Bowl",
+    "description": "Spiced rotisserie chicken with hummus, tabbouleh, garlic toum sauce and warm pita bread.",
+    "image_url": "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=800&q=80",
+    "calories": 490, "fat_g": 18.0, "protein_g": 38.0, "carbs_g": 42.0,
+    "keywords": {"countries": ["Lebanon"], "cooking_methods": ["Grill"], "carbs": ["Bread"], "protein": ["Chicken"]},
+    "dietary_tags": ["dairy-free", "halal", "kosher"], "allergens": ["gluten", "sesame"], "low_fat": false
+  },
+  {
+    "id": 61,
+    "name": "Falafel & Hummus Platter",
+    "description": "Crispy golden chickpea falafel patties served with velvety tahini hummus and Mediterranean salad.",
+    "image_url": "https://images.unsplash.com/photo-1593001874117-c99c800e3eb5?w=800&q=80",
+    "calories": 420, "fat_g": 18.0, "protein_g": 16.0, "carbs_g": 50.0,
+    "keywords": {"countries": ["Lebanon"], "cooking_methods": ["Fry"], "carbs": ["Bread"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "dairy-free", "halal", "kosher"], "allergens": ["sesame"], "low_fat": false
+  },
+  {
+    "id": 62,
+    "name": "Lao Larb Moo (Spicy Minced Pork)",
+    "description": "Traditional Laotian minced pork salad with fish sauce, lime juice, galangal, mint and toasted sticky rice powder.",
+    "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
+    "calories": 310, "fat_g": 16.0, "protein_g": 28.0, "carbs_g": 12.0,
+    "keywords": {"countries": ["Laos"], "cooking_methods": ["Boil"], "carbs": ["Rice"], "protein": ["Pork"]},
+    "dietary_tags": ["gluten-free", "dairy-free"], "allergens": [], "low_fat": true
+  },
+  {
+    "id": 63,
+    "name": "German Bratwurst with Sauerkraut",
+    "description": "Grilled German pork sausage served with tangy fermented sauerkraut and German mustard.",
+    "image_url": "https://images.unsplash.com/photo-1585325701165-351af916e581?w=800&q=80",
+    "calories": 470, "fat_g": 32.0, "protein_g": 22.0, "carbs_g": 16.0,
+    "keywords": {"countries": ["German"], "cooking_methods": ["Grill"], "carbs": ["Low-Carb"], "protein": ["Pork"]},
+    "dietary_tags": ["gluten-free", "dairy-free"], "allergens": [], "low_fat": false
+  },
+  {
+    "id": 64,
+    "name": "British Shepherd's Pie",
+    "description": "Savory minced lamb and vegetables simmered in gravy topped with golden browned mashed potatoes.",
+    "image_url": "https://images.unsplash.com/photo-1584947897598-a3429a149c7a?w=800&q=80",
+    "calories": 510, "fat_g": 24.0, "protein_g": 30.0, "carbs_g": 42.0,
+    "keywords": {"countries": ["British"], "cooking_methods": ["Bake"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["halal"], "allergens": ["dairy"], "low_fat": false
+  },
+  {
+    "id": 65,
+    "name": "Nordic Baked Salmon with Dill",
+    "description": "Scandinavian baked salmon fillet with fresh dill, lemon zest, baby potatoes and sour cream sauce.",
+    "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&q=80",
+    "calories": 440, "fat_g": 18.0, "protein_g": 36.0, "carbs_g": 28.0,
+    "keywords": {"countries": ["American"], "cooking_methods": ["Bake"], "carbs": ["Rice"], "protein": ["Fish"]},
+    "dietary_tags": ["gluten-free", "halal"], "allergens": ["fish", "dairy"], "low_fat": true
+  },
+  {
+    "id": 66,
+    "name": "Greek Chicken Souvlaki",
+    "description": "Marinated skewered chicken breast grilled with oregano and lemon, served with tzatziki and Greek salad.",
+    "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+    "calories": 410, "fat_g": 14.0, "protein_g": 40.0, "carbs_g": 24.0,
+    "keywords": {"countries": ["Lebanon"], "cooking_methods": ["Grill"], "carbs": ["Bread"], "protein": ["Chicken"]},
+    "dietary_tags": ["gluten-free", "halal"], "allergens": ["dairy"], "low_fat": true
+  },
+  {
+    "id": 67,
+    "name": "Thai Basil Beef (Pad Kra Pao Nua)",
+    "description": "Sliced tender beef stir-fried with fragrant holy basil, garlic, and fiery bird's eye chilies.",
+    "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80",
+    "calories": 490, "fat_g": 20.0, "protein_g": 38.0, "carbs_g": 35.0,
+    "keywords": {"countries": ["Thai"], "cooking_methods": ["Stir-Fry"], "carbs": ["Rice"], "protein": ["Beef"]},
+    "dietary_tags": ["dairy-free", "halal"], "allergens": ["soy"], "low_fat": false
+  },
+  {
+    "id": 68,
+    "name": "Matcha Chia Pudding & Berries",
+    "description": "Japanese ceremonial matcha infused almond milk chia pudding topped with fresh blueberries and raspberries.",
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
+    "calories": 240, "fat_g": 8.0, "protein_g": 8.0, "carbs_g": 32.0,
+    "keywords": {"countries": ["Japanese"], "cooking_methods": ["Boil"], "carbs": ["Low-Carb"], "protein": ["Tofu"]},
+    "dietary_tags": ["vegan", "vegetarian", "gluten-free", "dairy-free", "halal", "kosher"], "allergens": [], "low_fat": true
+  }
+];
+
+let INITIAL_MEALS = [...DEFAULT_MEALS];

@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal · Random — Smart Meal Planner & Admin</title>
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-warm: #E4DFB0;
+      --card-bg: #FFFFFF;
+      --primary-orange: #F39C12;
+      --primary-orange-hover: #E68A00;
+      --text-main: #1C1A14;
+      --text-muted: #7C7866;
+      --input-bg: #F7F6F0;
+      --input-border: #EBE8DC;
+      --radius-card: 32px;
+      --radius-btn: 9999px;
+      --radius-input: 20px;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Manrope', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-body);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-warm);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 16px 96px 16px;
+    }
+
+    .app-viewport {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Screen Visibility */
+    .screen {
+      display: none;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Top Subhead */
+    .app-brand-tag {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #64614E;
+      margin-bottom: 8px;
+    }
+
+    .screen-title {
+      font-family: var(--font-heading);
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .screen-subtitle {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    /* Card Container */
+    .card-box {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      padding: 28px 22px;
+      box-shadow: 0 16px 40px rgba(92, 90, 75, 0.08);
+      margin-bottom: 20px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      height: 52px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-input);
+      padding: 0 18px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-textarea {
+      height: 84px;
+      padding: 12px 18px;
+      resize: none;
+      line-height: 1.4;
+    }
+
+    .form-input::placeholder, .form-textarea::placeholder {
+      color: #A8A494;
+      font-weight: 500;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary-orange);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.15);
+    }
+
+    /* Primary Orange Pill Button */
+    .btn-orange {
+      width: 100%;
+      height: 54px;
+      background: var(--primary-orange);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px rgba(243, 156, 18, 0.25);
+      text-decoration: none;
+    }
+
+    .btn-orange:hover {
+      background: var(--primary-orange-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(243, 156, 18, 0.35);
+    }
+
+    .btn-orange:active {
+      transform: scale(0.98);
+    }
+
+    .btn-white-pill {
+      height: 52px;
+      background: #FFFFFF;
+      color: #1C1A14;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: var(--radius-btn);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+    }
+
+    .btn-white-pill:hover {
+      background: #F8F7F2;
+      transform: translateY(-1px);
+    }
+
+    .btn-step-back {
+      height: 54px;
+      background: #FFFFFF;
+      color: #1C1A14;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    .btn-step-back:hover {
+      background: #F4F2E6;
+    }
+
+    .btn-step-continue {
+      height: 54px;
+      background: var(--primary-orange);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(243, 156, 18, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .btn-step-continue:hover {
+      background: var(--primary-orange-hover);
+      transform: translateY(-1px);
+    }
+
+    .step-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    /* Footer Links */
+    .footer-link-text {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .footer-link-text a {
+      color: var(--primary-orange);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    /* Step Progress Bar */
+    .step-progress-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      margin-top: 6px;
+    }
+
+    .step-pill {
+      height: 8px;
+      border-radius: 9999px;
+      background: #EAE5CA;
+      flex: 1;
+      transition: all 0.3s ease;
+    }
+
+    .step-pill.active {
+      background: var(--primary-orange);
+      flex: 1.8;
+    }
+
+    /* Purpose Card Component */
+    .purpose-card {
+      background: #FFFFFF;
+      border: 2px solid #EBE8DC;
+      border-radius: 28px;
+      padding: 28px 18px;
+      text-align: center;
+      margin-bottom: 18px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .purpose-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .purpose-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+    }
+
+    .purpose-card.selected-random {
+      border: 2px solid #F39C12;
+      box-shadow: 0 8px 24px rgba(243, 156, 18, 0.15);
+    }
+
+    .purpose-card.selected-diet {
+      border: 2px solid #27AE60;
+      box-shadow: 0 8px 24px rgba(39, 174, 96, 0.15);
+    }
+
+    .purpose-icon-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 16px auto;
+    }
+
+    .orange-circle {
+      background: #F39C12;
+      box-shadow: 0 8px 18px rgba(243, 156, 18, 0.25);
+    }
+
+    .green-circle {
+      background: #27AE60;
+      box-shadow: 0 8px 18px rgba(39, 174, 96, 0.25);
+    }
+
+    .purpose-card-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 900;
+      color: #1C1A14;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .purpose-card-desc {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #555243;
+      margin-bottom: 18px;
+    }
+
+    .purpose-card-link {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .orange-text { color: #F39C12; }
+    .green-text { color: #27AE60; }
+
+    /* Sex Pill Selection */
+    .sex-pill-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .sex-pill {
+      height: 54px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 9999px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      color: #1C1A14;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sex-pill.active {
+      background: #FFFFFF;
+      border-color: #1C1A14;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Workout 3x3 Grid */
+    .workout-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .exercise-card {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 20px;
+      padding: 14px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .exercise-card.active {
+      background: var(--primary-orange);
+      border-color: var(--primary-orange);
+      color: #FFFFFF;
+      box-shadow: 0 8px 18px rgba(243, 156, 18, 0.3);
+    }
+
+    .exercise-card .num {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .exercise-card.active .num { color: #FFFFFF; }
+
+    .exercise-card .sub {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .exercise-card.active .sub { color: rgba(255, 255, 255, 0.9); }
+
+    .workout-grid-4x2 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .exercise-pill {
+      height: 48px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 900;
+      color: #1C1A14;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .exercise-pill.active {
+      background: var(--primary-orange);
+      border-color: var(--primary-orange);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(243, 156, 18, 0.3);
+    }
+
+    /* 3 Vertical Energy Stack Cards */
+    .energy-card-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .energy-card-blue { background: #EEF2FF; border-radius: 24px; padding: 20px; }
+    .energy-card-orange { background: #FFF4E5; border-radius: 24px; padding: 20px; }
+    .energy-card-green { background: #ECFDF5; border-radius: 24px; padding: 20px; }
+
+    .energy-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .energy-card-val {
+      font-family: var(--font-heading);
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .energy-card-blue .energy-card-val { color: #2563EB; }
+    .energy-card-orange .energy-card-val { color: #EA580C; }
+    .energy-card-green .energy-card-val { color: #10B981; }
+
+    .energy-card-unit {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6B7280;
+    }
+
+    /* Chips */
+    .chip-wrap-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .chip-btn, .restriction-chip {
+      background: #F4F2E6;
+      border: 1px solid #E5E0CE;
+      border-radius: 9999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .chip-btn.active, .restriction-chip.active {
+      background: var(--text-main);
+      color: #FFFFFF;
+      border-color: var(--text-main);
+    }
+
+    .keyword-category-header {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin: 14px 0 8px 0;
+    }
+
+    /* ============================================================ */
+    /* ADMIN SCREEN STYLES (MATCHING SCREENSHOT) */
+    /* ============================================================ */
+    .admin-search-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .admin-search-input {
+      width: 100%;
+      height: 56px;
+      background: #FFFFFF;
+      border: none;
+      border-radius: 9999px;
+      padding: 0 20px 0 50px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: 0 4px 18px rgba(92, 90, 75, 0.08);
+      outline: none;
+    }
+
+    .admin-search-input::placeholder {
+      color: #7C7866;
+      font-weight: 500;
+    }
+
+    .admin-search-input:focus {
+      box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3), 0 4px 18px rgba(92, 90, 75, 0.08);
+    }
+
+    .admin-search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7C7866;
+      pointer-events: none;
+    }
+
+    .admin-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .admin-meals-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Individual Meal Card in Admin List */
+    .admin-meal-card {
+      background: #FFFFFF;
+      border-radius: 26px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(92, 90, 75, 0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .admin-meal-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(92, 90, 75, 0.1);
+    }
+
+    .admin-meal-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .admin-meal-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #F3F1E6;
+    }
+
+    .admin-meal-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .admin-meal-name {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 900;
+      color: #1C1A14;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .admin-meal-sub {
+      font-size: 13px;
+      font-weight: 600;
+      color: #7C7866;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .admin-meal-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-icon-edit {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1px solid #EBE8DC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #1C1A14;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon-edit:hover {
+      background: #F4F2E6;
+      border-color: #D6D1BF;
+      transform: scale(1.05);
+    }
+
+    .btn-icon-delete {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #FFF5F5;
+      border: 1px solid #FED7D7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #E53E3E;
+      box-shadow: 0 2px 6px rgba(229, 62, 62, 0.08);
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon-delete:hover {
+      background: #FED7D7;
+      transform: scale(1.05);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(229, 224, 176, 0.7);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 12px 0;
+      z-index: 100;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #7C7866;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      flex: 1;
+      transition: color 0.15s ease;
+    }
+
+    .nav-tab.active {
+      color: var(--primary-orange);
+    }
+
+    .nav-tab.active svg {
+      stroke: var(--primary-orange);
+    }
+
+    /* Modal Overlays & Bottom Sheets */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 26, 20, 0.45);
+      backdrop-filter: blur(6px);
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 300;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 420px;
+      max-height: 90vh;
+      background: #FFFFFF;
+      border-radius: 36px 36px 0 0;
+      padding: 28px 22px 36px 22px;
+      overflow-y: auto;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.12);
+    }
+
+    .modal-sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      background: #FFFFFF;
+      padding-bottom: 8px;
+      z-index: 10;
+    }
+
+    .modal-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #F4F2E6;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .img-preview-box {
+      width: 100%;
+      height: 140px;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #F7F6F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #EBE8DC;
+    }
+
+    .img-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .checkbox-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .checkbox-chip {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 9999px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .checkbox-chip.active {
+      background: var(--primary-orange);
+      border-color: var(--primary-orange);
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    
+    <!-- 1. LOGIN SCREEN -->
+    <div id="screenLogin" class="screen active">
+      <div class="app-brand-tag">MEAL · RANDOM</div>
+      <h1 class="screen-title">Welcome back.</h1>
+      <p class="screen-subtitle">Sign in to plan today's meals or access Admin.</p>
+
+      <div class="card-box">
+        <form id="formLogin">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">EMAIL</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required data-testid="input-email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">PASSWORD</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required data-testid="input-password" />
+          </div>
+
+          <button type="submit" class="btn-orange" data-testid="btn-sign-in">Sign in</button>
+        </form>
+      </div>
+
+      <div class="footer-link-text">
+        New here? <a href="#" id="btnCreateAccount" data-testid="link-create-account">Create an account</a>
+      </div>
+    </div>
+
+    <!-- 1B. REGISTER SCREEN -->
+    <div id="screenRegister" class="screen">
+      <div class="app-brand-tag">MEAL · RANDOM</div>
+      <h1 class="screen-title">Get started.</h1>
+      <p class="screen-subtitle">Track calories. Discover meals.</p>
+
+      <div class="card-box">
+        <form id="formRegister">
+          <div class="form-group">
+            <label class="form-label" for="registerEmail">EMAIL</label>
+            <input type="email" id="registerEmail" class="form-input" placeholder="you@example.com" required data-testid="input-register-email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="registerPassword">PASSWORD</label>
+            <input type="password" id="registerPassword" class="form-input" placeholder="At least 6 characters" minlength="6" required data-testid="input-register-password" />
+          </div>
+
+          <button type="submit" class="btn-orange" data-testid="btn-create-account-submit">Create account</button>
+        </form>
+      </div>
+
+      <div class="footer-link-text">
+        Already have an account? <a href="#" id="btnLinkToLogin" data-testid="link-sign-in">Sign in</a>
+      </div>
+    </div>
+
+    <!-- STEP 1 / 5: PURPOSE SELECTION -->
+    <div id="screenPurpose" class="screen">
+      <div class="step-progress-bar">
+        <div class="step-pill active"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+      </div>
+
+      <div class="app-brand-tag" style="margin-top: 4px;">STEP 1 / 5</div>
+      <h1 class="screen-title" style="font-size: 34px;">What's Your Purpose?</h1>
+      <p class="screen-subtitle">Choose how you want to use this app</p>
+
+      <div class="card-box" style="padding: 24px 16px;">
+        <div id="btnChooseRandom" class="purpose-card" onclick="selectPurpose('random')" data-testid="mode-random">
+          <div class="purpose-icon-circle orange-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <h2 class="purpose-card-title">Random Meal</h2>
+          <p class="purpose-card-desc">
+            Get random meal suggestions based on your preferences. Daily calorie budget calculated via <strong>TDEE</strong>.
+          </p>
+          <div class="purpose-card-link orange-text">Explore meals →</div>
+        </div>
+
+        <div id="btnChooseDiet" class="purpose-card" onclick="selectPurpose('diet')" data-testid="mode-diet">
+          <div class="purpose-icon-circle green-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="6"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+          </div>
+          <h2 class="purpose-card-title">Diet Planning</h2>
+          <p class="purpose-card-desc">
+            Track daily calorie goals and energy limits. Target calculated via <strong>BMR</strong>.
+          </p>
+          <div class="purpose-card-link green-text">Start planning →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 / 5: BODY STATS -->
+    <div id="screenStep2Body" class="screen">
+      <div class="step-progress-bar">
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+      </div>
+
+      <div class="app-brand-tag">STEP 2 / 5</div>
+      <h1 class="screen-title" style="font-size: 34px;">Tell us about you</h1>
+      <p class="screen-subtitle">We use this for the Mifflin–St Jeor calorie formula.</p>
+
+      <div class="card-box">
+        <div class="form-group">
+          <label class="form-label">SEX</label>
+          <div class="sex-pill-group">
+            <div id="sexMale" class="sex-pill" onclick="setSex('male')">Male</div>
+            <div id="sexFemale" class="sex-pill active" onclick="setSex('female')">Female</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">BIRTHDAY</label>
+          <input type="text" id="inputStep2Birthday" class="form-input" placeholder="YYYY-MM-DD" value="2010-05-15" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">WEIGHT (KG)</label>
+            <input type="number" id="inputStep2Weight" class="form-input" value="45" />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">HEIGHT (CM)</label>
+            <input type="number" id="inputStep2Height" class="form-input" value="157" />
+          </div>
+        </div>
+      </div>
+
+      <div class="step-btn-group">
+        <button class="btn-step-back" onclick="showScreen('screenPurpose')">Back</button>
+        <button class="btn-step-continue" onclick="submitStep2()">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 / 5: EXERCISE -->
+    <div id="screenStep3Exercise" class="screen">
+      <div class="step-progress-bar">
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill"></div>
+        <div class="step-pill"></div>
+      </div>
+
+      <div class="app-brand-tag">STEP 3 / 5</div>
+      <h1 class="screen-title" style="font-size: 34px;">Exercise per week?</h1>
+      <p class="screen-subtitle">Number of workout days (0–7).</p>
+
+      <div class="card-box">
+        <div class="workout-grid">
+          <div class="exercise-card" onclick="setExercise(0, this)"><div class="num">0</div><div class="sub">rest</div></div>
+          <div class="exercise-card active" onclick="setExercise(1, this)"><div class="num">1</div><div class="sub">day</div></div>
+          <div class="exercise-card" onclick="setExercise(2, this)"><div class="num">2</div><div class="sub">days</div></div>
+          <div class="exercise-card" onclick="setExercise(3, this)"><div class="num">3</div><div class="sub">days</div></div>
+          <div class="exercise-card" onclick="setExercise(4, this)"><div class="num">4</div><div class="sub">days</div></div>
+          <div class="exercise-card" onclick="setExercise(5, this)"><div class="num">5</div><div class="sub">days</div></div>
+          <div class="exercise-card" onclick="setExercise(6, this)"><div class="num">6</div><div class="sub">athlete</div></div>
+          <div class="exercise-card" onclick="setExercise(7, this)"><div class="num">7</div><div class="sub">athlete</div></div>
+        </div>
+      </div>
+
+      <div class="step-btn-group">
+        <button class="btn-step-back" onclick="showScreen('screenStep2Body')">Back</button>
+        <button class="btn-step-continue" onclick="submitStep3()">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 / 5: DIETARY PREFERENCES -->
+    <div id="screenStep4Dietary" class="screen">
+      <div class="step-progress-bar">
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill"></div>
+      </div>
+
+      <div class="app-brand-tag">STEP 4 / 5</div>
+      <h1 class="screen-title" style="font-size: 34px;">Dietary preferences</h1>
+      <p class="screen-subtitle">Pick anything that applies.</p>
+
+      <div class="card-box">
+        <div id="step4DietaryChips" class="chip-wrap-grid"></div>
+      </div>
+
+      <div class="step-btn-group">
+        <button class="btn-step-back" onclick="showScreen('screenStep3Exercise')">Back</button>
+        <button class="btn-step-continue" onclick="submitStep4()">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 / 5: ALLERGIES -->
+    <div id="screenStep5Allergies" class="screen">
+      <div class="step-progress-bar">
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+        <div class="step-pill active"></div>
+      </div>
+
+      <div class="app-brand-tag">STEP 5 / 5</div>
+      <h1 class="screen-title" style="font-size: 34px;">Any allergies?</h1>
+      <p class="screen-subtitle">We'll never recommend meals with these.</p>
+
+      <div class="card-box">
+        <div id="step5AllergiesChips" class="chip-wrap-grid"></div>
+      </div>
+
+      <div class="step-btn-group">
+        <button class="btn-step-back" onclick="showScreen('screenStep4Dietary')">Back</button>
+        <button class="btn-step-continue" onclick="submitStep5()">Finish</button>
+      </div>
+    </div>
+
+    <!-- 4. MAIN DASHBOARD / HOME SCREEN -->
+    <div id="screenDashboard" class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+          <div style="width: 40px; height: 40px; background: #FFFFFF; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-top: 2px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1A14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          </div>
+          <div>
+            <h1 id="dashTitle" class="screen-title" style="font-size: 26px; margin-bottom: 4px; line-height: 1.25;">Random Meal Generator</h1>
+            <p id="dashSubtitle" class="screen-subtitle" style="margin-bottom: 0; font-size: 14px;">Female, 15 years, 45kg, 157cm</p>
+          </div>
+        </div>
+
+        <button id="btnEditProfile" style="background: #FFFFFF; border: none; border-radius: 9999px; padding: 10px 16px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);" onclick="openSettingsScreen()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Profile</span>
+        </button>
+      </div>
+
+      <!-- 3 Energy Cards -->
+      <div id="bentoContainer" class="energy-card-stack">
+        <div class="energy-card-blue">
+          <div class="energy-card-title">Daily Energy Need</div>
+          <div id="valNeed" class="energy-card-val">1554</div>
+          <div class="energy-card-unit">calories/day</div>
+        </div>
+
+        <div class="energy-card-orange">
+          <div class="energy-card-title">Consumed Today</div>
+          <div id="valConsumed" class="energy-card-val">0</div>
+          <div class="energy-card-unit">calories</div>
+        </div>
+
+        <div class="energy-card-green">
+          <div class="energy-card-title">Remaining</div>
+          <div id="valRemaining" class="energy-card-val">1554</div>
+          <div class="energy-card-unit">calories</div>
+        </div>
+      </div>
+
+      <!-- Filter by Keywords Card -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 900; color: #1C1A14;">Filter by Keywords</h2>
+          <button id="btnClearKeywords" style="background: none; border: none; color: var(--primary-orange); font-size: 13px; font-weight: 800; cursor: pointer;">Clear</button>
+        </div>
+        <div id="categorizedKeywordsContainer"></div>
+      </div>
+
+      <!-- Your Meal Card -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 900; color: #1C1A14;">Your Meal</h2>
+          <button id="btnRandomMeal" class="btn-orange" style="width: auto; height: 42px; padding: 0 16px; margin-top: 0; font-size: 13px; border-radius: 9999px;" onclick="rollRandomMeal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+            <span>Roll Meal</span>
+          </button>
+        </div>
+
+        <div id="yourMealBox"></div>
+      </div>
+
+      <!-- Today's Meals Card -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 900; color: #1C1A14;">Today's Meals</h2>
+          <button id="btnStartNewDay" style="background: none; border: none; color: #EF4444; font-size: 12px; font-weight: 800; cursor: pointer;">Reset Day</button>
+        </div>
+        <div id="todayMealsContainer"></div>
+      </div>
+    </div>
+
+    <!-- 5. SETTINGS / PROFILE SCREEN -->
+    <div id="screenSettings" class="screen">
+      <div class="app-brand-tag">YOUR PROFILE</div>
+      <h1 class="screen-title">Profile & Goals</h1>
+      <p id="settingsEmailSubtitle" class="screen-subtitle">user@example.com</p>
+
+      <!-- Calorie Target -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div class="form-label" style="margin-bottom: 10px;">DAILY CALORIE TARGET</div>
+        <div id="settingsCalorieVal" style="font-family: var(--font-heading); font-size: 42px; font-weight: 900; line-height: 1; margin-bottom: 6px;">1554</div>
+        <div id="settingsCalorieSub" style="font-size: 14px; color: var(--text-muted); font-weight: 500;">1554 TDEE · Mifflin–St Jeor</div>
+      </div>
+
+      <!-- Mode -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div class="form-label" style="margin-bottom: 12px;">MODE</div>
+        <div class="sex-pill-group" style="margin-bottom: 0;">
+          <div id="settingsModeRandom" class="sex-pill active" onclick="setSettingsMode('random')">Random</div>
+          <div id="settingsModeDiet" class="sex-pill" onclick="setSettingsMode('diet')">Diet</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div class="form-label" style="margin-bottom: 16px;">BODY STATS</div>
+        
+        <div class="form-group">
+          <div class="form-label">SEX</div>
+          <div class="sex-pill-group">
+            <div id="settingsSexMale" class="sex-pill" onclick="setSettingsSex('male')">Male</div>
+            <div id="settingsSexFemale" class="sex-pill active" onclick="setSettingsSex('female')">Female</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">BIRTHDAY</div>
+          <input type="text" id="settingsInputBirthday" class="form-input" placeholder="YYYY-MM-DD" value="2010-05-15" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-label">WEIGHT (KG)</div>
+            <input type="number" id="settingsInputWeight" class="form-input" value="45" />
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-label">HEIGHT (CM)</div>
+            <input type="number" id="settingsInputHeight" class="form-input" value="157" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <div class="form-label">EXERCISE / WEEK (DAYS)</div>
+          <div class="workout-grid-4x2">
+            <div class="exercise-pill" onclick="setSettingsExercise(0, this)">0</div>
+            <div class="exercise-pill active" onclick="setSettingsExercise(1, this)">1</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(2, this)">2</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(3, this)">3</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(4, this)">4</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(5, this)">5</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(6, this)">6</div>
+            <div class="exercise-pill" onclick="setSettingsExercise(7, this)">7</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div class="form-label" style="margin-bottom: 12px;">DIETARY PREFERENCES</div>
+        <div id="settingsDietaryChips" class="chip-wrap-grid"></div>
+      </div>
+
+      <!-- Allergies -->
+      <div class="card-box" style="padding: 24px 20px;">
+        <div class="form-label" style="margin-bottom: 12px;">ALLERGIES</div>
+        <div id="settingsAllergiesChips" class="chip-wrap-grid"></div>
+      </div>
+
+      <button class="btn-orange" style="margin-bottom: 14px;" onclick="saveSettings()">Save changes</button>
+      <button class="btn-step-back" style="width: 100%; height: 54px; border-radius: 9999px; margin-bottom: 32px;" onclick="signOutUser()">Sign out</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 6. DEDICATED ADMIN SCREEN (MATCHES SCREENSHOT) -->
+    <!-- ============================================================ -->
+    <div id="screenAdmin" class="screen">
+      <!-- Admin Header -->
+      <div class="app-brand-tag">OWNER · ADMIN</div>
+      <h1 class="screen-title">Meals</h1>
+      <p class="screen-subtitle"><span id="adminCatalogCount">68</span> meals in catalog</p>
+
+      <!-- Search Input -->
+      <div class="admin-search-wrap">
+        <svg class="admin-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="adminSearchInput" class="admin-search-input" placeholder="Search by name..." oninput="handleAdminSearch(this.value)" />
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="admin-actions-row">
+        <button class="btn-orange" onclick="openAddMealModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New ...</span>
+        </button>
+
+        <button class="btn-white-pill" onclick="openImportModal()">
+          <span>Import...</span>
+        </button>
+      </div>
+
+      <!-- Meal Cards List -->
+      <div id="adminMealsCardsList" class="admin-meals-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR (Home, Profile, Admin) -->
+  <div id="bottomNav" class="bottom-nav" style="display: none;">
+    <div id="tabNavHome" class="nav-tab active" onclick="openHomeScreen()" data-testid="nav-home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Home</span>
+    </div>
+
+    <div id="tabNavProfile" class="nav-tab" onclick="openSettingsScreen()" data-testid="nav-profile">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span>Profile</span>
+    </div>
+
+    <div id="tabNavAdmin" class="nav-tab" onclick="openAdminScreen()" data-testid="nav-admin" style="display: none;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <polyline points="9 12 11 14 15 10"></polyline>
+      </svg>
+      <span>Admin</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- EDIT MEAL MODAL (EDIT EVERYTHING) -->
+  <!-- ============================================================ -->
+  <div id="modalEditMeal" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <div>
+          <div class="app-brand-tag" style="margin-bottom:2px;">ADMIN EDITOR</div>
+          <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 900;">Edit Meal Details</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeEditMealModal()">✕</button>
+      </div>
+
+      <form id="formEditMeal" onsubmit="saveMealEdits(event)">
+        <input type="hidden" id="editMealIndex" />
+
+        <!-- Image Preview & URL -->
+        <div class="img-preview-box">
+          <img id="editMealPreviewImg" src="" alt="Meal preview" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">IMAGE URL</label>
+          <input type="text" id="editMealImg" class="form-input" placeholder="https://..." oninput="updateImagePreview('editMealImg', 'editMealPreviewImg')" required />
+        </div>
+
+        <!-- Name & Description -->
+        <div class="form-group">
+          <label class="form-label">MEAL NAME</label>
+          <input type="text" id="editMealName" class="form-input" placeholder="e.g. Pad Thai" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DESCRIPTION</label>
+          <textarea id="editMealDesc" class="form-textarea" placeholder="Delicious recipe description..." required></textarea>
+        </div>
+
+        <!-- Calories & Macros -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CALORIES (KCAL)</label>
+            <input type="number" id="editMealCal" class="form-input" min="0" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">PROTEIN (G)</label>
+            <input type="number" id="editMealProtein" class="form-input" min="0" step="0.1" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CARBS (G)</label>
+            <input type="number" id="editMealCarbs" class="form-input" min="0" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">FAT (G)</label>
+            <input type="number" id="editMealFat" class="form-input" min="0" step="0.1" />
+          </div>
+        </div>
+
+        <!-- Categorized Keywords -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">COUNTRY / CUISINE</label>
+            <select id="editMealCountry" class="form-select">
+              <option value="Thai">Thai</option>
+              <option value="Japanese">Japanese</option>
+              <option value="Chinese">Chinese</option>
+              <option value="Korean">Korean</option>
+              <option value="Indian">Indian</option>
+              <option value="Vietnamese">Vietnamese</option>
+              <option value="Laos">Laos</option>
+              <option value="Lebanon">Lebanon</option>
+              <option value="Mexican">Mexican</option>
+              <option value="Italian">Italian</option>
+              <option value="French">French</option>
+              <option value="Spanish">Spanish</option>
+              <option value="American">American</option>
+              <option value="British">British</option>
+              <option value="German">German</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">COOKING METHOD</label>
+            <select id="editMealMethod" class="form-select">
+              <option value="Stir-Fry">Stir-Fry</option>
+              <option value="Boil">Boil</option>
+              <option value="Grill">Grill</option>
+              <option value="Bake">Bake</option>
+              <option value="Steam">Steam</option>
+              <option value="Stew">Stew</option>
+              <option value="Fry">Fry</option>
+              <option value="Smoke">Smoke</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CARBS TYPE</label>
+            <select id="editMealCarbType" class="form-select">
+              <option value="Rice">Rice</option>
+              <option value="Noodles">Noodles</option>
+              <option value="Bread">Bread</option>
+              <option value="Pasta">Pasta</option>
+              <option value="Low-Carb">Low-Carb</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">PRIMARY PROTEIN</label>
+            <select id="editMealProteinType" class="form-select">
+              <option value="Chicken">Chicken</option>
+              <option value="Pork">Pork</option>
+              <option value="Beef">Beef</option>
+              <option value="Fish">Fish</option>
+              <option value="Seafood">Seafood</option>
+              <option value="Egg">Egg</option>
+              <option value="Tofu">Tofu</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Allergens Checklist -->
+        <div class="form-group">
+          <label class="form-label">ALLERGENS</label>
+          <div id="editAllergensChips" class="checkbox-chip-grid"></div>
+        </div>
+
+        <!-- Dietary Tags Checklist -->
+        <div class="form-group">
+          <label class="form-label">DIETARY TAGS</label>
+          <div id="editDietaryChips" class="checkbox-chip-grid"></div>
+        </div>
+
+        <button type="submit" class="btn-orange" style="margin-top: 10px;">Save All Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CREATE NEW MEAL MODAL -->
+  <!-- ============================================================ -->
+  <div id="modalAddMeal" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <div>
+          <div class="app-brand-tag" style="margin-bottom:2px;">CATALOG</div>
+          <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 900;">Add New Meal</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeAddMealModal()">✕</button>
+      </div>
+
+      <form id="formAddMeal" onsubmit="saveNewMeal(event)">
+        <div class="img-preview-box">
+          <img id="addMealPreviewImg" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80" alt="Meal preview" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">IMAGE URL</label>
+          <input type="text" id="addMealImg" class="form-input" value="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80" oninput="updateImagePreview('addMealImg', 'addMealPreviewImg')" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">MEAL NAME</label>
+          <input type="text" id="addMealName" class="form-input" placeholder="e.g. Thai Spicy Basil Beef" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DESCRIPTION</label>
+          <textarea id="addMealDesc" class="form-textarea" placeholder="Delicious recipe description..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CALORIES (KCAL)</label>
+            <input type="number" id="addMealCal" class="form-input" value="450" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">PROTEIN (G)</label>
+            <input type="number" id="addMealProtein" class="form-input" value="30" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CARBS (G)</label>
+            <input type="number" id="addMealCarbs" class="form-input" value="45" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">FAT (G)</label>
+            <input type="number" id="addMealFat" class="form-input" value="15" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">COUNTRY / CUISINE</label>
+            <select id="addMealCountry" class="form-select">
+              <option value="Thai" selected>Thai</option>
+              <option value="Japanese">Japanese</option>
+              <option value="Chinese">Chinese</option>
+              <option value="Korean">Korean</option>
+              <option value="Indian">Indian</option>
+              <option value="Vietnamese">Vietnamese</option>
+              <option value="Mexican">Mexican</option>
+              <option value="Italian">Italian</option>
+              <option value="American">American</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">COOKING METHOD</label>
+            <select id="addMealMethod" class="form-select">
+              <option value="Stir-Fry" selected>Stir-Fry</option>
+              <option value="Boil">Boil</option>
+              <option value="Grill">Grill</option>
+              <option value="Bake">Bake</option>
+              <option value="Steam">Steam</option>
+              <option value="Stew">Stew</option>
+              <option value="Fry">Fry</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CARBS TYPE</label>
+            <select id="addMealCarbType" class="form-select">
+              <option value="Rice" selected>Rice</option>
+              <option value="Noodles">Noodles</option>
+              <option value="Bread">Bread</option>
+              <option value="Pasta">Pasta</option>
+              <option value="Low-Carb">Low-Carb</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">PROTEIN</label>
+            <select id="addMealProteinType" class="form-select">
+              <option value="Chicken" selected>Chicken</option>
+              <option value="Pork">Pork</option>
+              <option value="Beef">Beef</option>
+              <option value="Fish">Fish</option>
+              <option value="Seafood">Seafood</option>
+              <option value="Tofu">Tofu</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Allergens -->
+        <div class="form-group">
+          <label class="form-label">ALLERGENS</label>
+          <div id="addAllergensChips" class="checkbox-chip-grid"></div>
+        </div>
+
+        <!-- Dietary Tags -->
+        <div class="form-group">
+          <label class="form-label">DIETARY TAGS</label>
+          <div id="addDietaryChips" class="checkbox-chip-grid"></div>
+        </div>
+
+        <button type="submit" class="btn-orange">➕ Add to Catalog</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SPOONACULAR IMPORT MODAL -->
+  <!-- ============================================================ -->
+  <div id="modalImportMeal" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <div>
+          <div class="app-brand-tag" style="margin-bottom:2px;">SPOONACULAR API</div>
+          <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 900;">Import Recipes</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="spoonacularQuery" class="form-input" placeholder="Search (e.g. Thai, Curry, Salmon)..." value="Thai" />
+          <button type="button" class="btn-orange" style="width: auto; padding: 0 20px; margin-top: 0; white-space: nowrap;" onclick="searchSpoonacular()">Search</button>
+        </div>
+      </div>
+
+      <div id="spoonacularResults" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size:14px; color:#7C7866; text-align:center; padding:20px;">
+          Type a search term above and click Search to query Spoonacular recipe database.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="meals.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
