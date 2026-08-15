@@ -3,11 +3,11 @@
 // ============================================================
 
 // State Management & Storage
-let isLoggedIn = localStorage.getItem('mp_is_logged_in') === 'true';
+let isLoggedIn = sessionStorage.getItem('mp_is_logged_in') === 'true';
 let hasCompletedProfile = localStorage.getItem('mp_has_profile') === 'true';
 let mode = localStorage.getItem('mp_app_mode') || 'random'; // 'random' or 'diet'
 let activeTab = 'home'; // 'home', 'profile', or 'admin'
-let currentUserEmail = localStorage.getItem('mp_user_email') || '';
+let currentUserEmail = sessionStorage.getItem('mp_user_email') || '';
 
 const ADMIN_EMAIL = "natitasinsuwan@gmail.com";
 
@@ -251,12 +251,13 @@ function setupEventListeners() {
       const loginEmailInput = document.getElementById('loginEmail');
       currentUserEmail = loginEmailInput ? (loginEmailInput.value.trim() || 'user@example.com') : 'user@example.com';
       isLoggedIn = true;
-      localStorage.setItem('mp_is_logged_in', 'true');
-      localStorage.setItem('mp_user_email', currentUserEmail);
+      sessionStorage.setItem('mp_is_logged_in', 'true');
+      sessionStorage.setItem('mp_user_email', currentUserEmail);
+      localStorage.removeItem('mp_is_logged_in'); // Clean legacy persistent login
 
       updateBottomNavVisibility();
 
-      if (!mode) {
+      if (!hasCompletedProfile && !localStorage.getItem('mp_has_profile')) {
         showScreen('screenPurpose');
       } else {
         openHomeScreen();
@@ -272,8 +273,9 @@ function setupEventListeners() {
       const regEmailInput = document.getElementById('registerEmail');
       currentUserEmail = regEmailInput ? (regEmailInput.value.trim() || 'user@example.com') : 'user@example.com';
       isLoggedIn = true;
-      localStorage.setItem('mp_is_logged_in', 'true');
-      localStorage.setItem('mp_user_email', currentUserEmail);
+      sessionStorage.setItem('mp_is_logged_in', 'true');
+      sessionStorage.setItem('mp_user_email', currentUserEmail);
+      localStorage.removeItem('mp_is_logged_in');
 
       updateBottomNavVisibility();
       showScreen('screenPurpose');
@@ -1033,7 +1035,17 @@ function saveSettings() {
 
 function signOutUser() {
   isLoggedIn = false;
-  localStorage.setItem('mp_is_logged_in', 'false');
+  currentUserEmail = '';
+  sessionStorage.removeItem('mp_is_logged_in');
+  sessionStorage.removeItem('mp_user_email');
+  localStorage.removeItem('mp_is_logged_in');
+  localStorage.removeItem('mp_user_email');
+  
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPass = document.getElementById('loginPassword');
+  if (loginEmail) loginEmail.value = '';
+  if (loginPass) loginPass.value = '';
+
   showScreen('screenLogin');
 }
 
