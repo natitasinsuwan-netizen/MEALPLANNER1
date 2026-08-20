@@ -303,8 +303,7 @@ function setupEventListeners() {
   const btnClearKeywords = document.getElementById('btnClearKeywords');
   if (btnClearKeywords) {
     btnClearKeywords.addEventListener('click', () => {
-      selectedKeywords.clear();
-      renderCategorizedKeywords();
+      clearAllKeywords();
     });
   }
 
@@ -700,6 +699,12 @@ function importSpoonacularMeal(name, calories, img, desc) {
 // ============================================================
 // DASHBOARD & RANDOM GENERATOR
 // ============================================================
+function clearAllKeywords() {
+  selectedKeywords.clear();
+  renderCategorizedKeywords();
+  rollRandomMeal();
+}
+
 function renderCategorizedKeywords() {
   const container = document.getElementById('categorizedKeywordsContainer');
   if (!container) return;
@@ -727,6 +732,7 @@ function renderCategorizedKeywords() {
           selectedKeywords.add(tag);
           chip.classList.add('active');
         }
+        rollRandomMeal();
       });
       grid.appendChild(chip);
     });
@@ -771,7 +777,7 @@ function renderDashboard() {
 function rollRandomMeal() {
   let pool = INITIAL_MEALS;
 
-  // Allergy Filter
+  // 1. Allergy Filter
   if (profile.allergies && profile.allergies.length > 0) {
     const userAllergies = profile.allergies.map(a => a.toLowerCase());
     pool = pool.filter(meal => {
@@ -781,7 +787,7 @@ function rollRandomMeal() {
     });
   }
 
-  // Dietary Preferences Filter
+  // 2. Dietary Preferences Filter
   if (profile.ethical && profile.ethical.length > 0) {
     const userPrefs = profile.ethical.map(p => p.toLowerCase());
     if (userPrefs.includes('vegan')) {
@@ -791,32 +797,119 @@ function rollRandomMeal() {
     }
   }
 
-  // Keyword Chips Filter
+  // 3. Accurate Category-Aware Keyword Filter (AND across categories, OR within same category)
   if (selectedKeywords.size > 0) {
-    const selectedArr = Array.from(selectedKeywords).map(k => k.toLowerCase());
-    pool = pool.filter(meal => {
-      const allMealTags = [
-        ...(meal.keywords?.countries || []),
-        ...(meal.keywords?.cooking_methods || []),
-        ...(meal.keywords?.carbs || []),
-        ...(meal.keywords?.protein || [])
-      ].map(t => t.toLowerCase());
+    // Group selected keywords by their category
+    const selByCat = {};
+    for (const kw of selectedKeywords) {
+      let foundCat = 'Other';
+      for (const [catName, tags] of Object.entries(CATEGORIZED_KEYWORDS)) {
+        if (tags.some(t => t.toLowerCase() === kw.toLowerCase())) {
+          foundCat = catName;
+          break;
+        }
+      }
+      if (!selByCat[foundCat]) selByCat[foundCat] = [];
+      selByCat[foundCat].push(kw.toLowerCase());
+    }
 
-      return selectedArr.some(sel => allMealTags.includes(sel) || meal.name.toLowerCase().includes(sel) || meal.description.toLowerCase().includes(sel));
+    // Filter meals by checking if meal satisfies all selected categories
+    const exactMatches = pool.filter(meal => {
+      const kwData = meal.keywords || {};
+      const mealCountries = (kwData.countries || []).map(x => x.toLowerCase());
+      const mealMethods = (kwData.cooking_methods || []).map(x => x.toLowerCase());
+      const mealCarbs = (kwData.carbs || []).map(x => x.toLowerCase());
+      const mealProtein = (kwData.protein || []).map(x => x.toLowerCase());
+      const mealText = `${meal.name || ''} ${meal.description || ''}`.toLowerCase();
+
+      for (const [cat, selList] of Object.entries(selByCat)) {
+        const catMatch = selList.some(sel => {
+          if (cat === 'Country') return mealCountries.includes(sel) || mealText.includes(sel);
+          if (cat === 'Cooking Methods') return mealMethods.includes(sel) || mealText.includes(sel);
+          if (cat === 'Carbs') return mealCarbs.includes(sel) || mealText.includes(sel);
+          if (cat === 'Protein') return mealProtein.includes(sel) || mealText.includes(sel);
+          return mealText.includes(sel) || mealCountries.includes(sel) || mealMethods.includes(sel) || mealCarbs.includes(sel) || mealProtein.includes(sel);
+        });
+        if (!catMatch) return false;
+      }
+      return true;
     });
-  }
 
-  if (pool.length === 0) pool = INITIAL_MEALS;
-  const picked = pool[Math.floor(Math.random() * pool.length)];
+    if (exactMatches.length > 0) {
+      pool = exactMatches;
+    } else {
+      // Score meals based on number of matched categories if no full combination exists
+      const scored = pool.map(meal => {
+        const kwData = meal.keywords || {};
+        const mealCountries = (kwData.countries || []).map(x => x.toLowerCase());
+        const mealMethods = (kwData.cooking_methods || []).map(x => x.toLowerCase());
+        const mealCarbs = (kwData.carbs || []).map(x => x.toLowerCase());
+        const mealProtein = (kwData.protein || []).map(x => x.toLowerCase());
+        const mealText = `${meal.name || ''} ${meal.description || ''}`.toLowerCase();
+
+        let score = 0;
+        for (const [cat, selList] of Object.entries(selByCat)) {
+          const match = selList.some(sel => {
+            if (cat === 'Country') return mealCountries.includes(sel) || mealText.includes(sel);
+            if (cat === 'Cooking Methods') return mealMethods.includes(sel) || mealText.includes(sel);
+            if (cat === 'Carbs') return mealCarbs.includes(sel) || mealText.includes(sel);
+            if (cat === 'Protein') return mealProtein.includes(sel) || mealText.includes(sel);
+            return mealText.includes(sel);
+          });
+          if (match) score++;
+        }
+        return { meal, score };
+      }).filter(item => item.score > 0);
+
+      if (scored.length > 0) {
+        const maxScore = Math.max(...scored.map(s => s.score));
+        pool = scored.filter(s => s.score === maxScore).map(s => s.meal);
+      } else {
+        pool = [];
+      }
+    }
+  }
 
   const box = document.getElementById('yourMealBox');
   if (!box) return;
 
+  if (pool.length === 0) {
+    box.innerHTML = `
+      <div style="text-align:center; padding:32px 16px; background:#F8F7F0; border-radius:22px; border:1px dashed #DDD8C4;">
+        <div style="font-size:36px; margin-bottom:8px;">🔍</div>
+        <div style="font-family:var(--font-heading); font-size:18px; font-weight:800; color:#1C1A14; margin-bottom:6px;">No Meals Found</div>
+        <div style="font-size:13.5px; color:var(--text-muted); line-height:1.4; margin-bottom:16px;">
+          No meals match your selected keyword filters and dietary restrictions.
+        </div>
+        <button onclick="clearAllKeywords()" class="btn-orange" style="width:auto; height:40px; padding:0 20px; margin:0 auto; font-size:13px; border-radius:9999px;">
+          Clear Keywords
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const picked = pool[Math.floor(Math.random() * pool.length)];
   const escapedName = picked.name.replace(/'/g, "\\'");
+
+  // Generate keyword tags HTML with highlighted active chips
+  const allMealTags = [
+    ...(picked.keywords?.countries || []),
+    ...(picked.keywords?.cooking_methods || []),
+    ...(picked.keywords?.carbs || []),
+    ...(picked.keywords?.protein || [])
+  ];
+
+  const tagsHtml = allMealTags.map(tag => {
+    const isSelected = selectedKeywords.has(tag) || Array.from(selectedKeywords).some(k => k.toLowerCase() === tag.toLowerCase());
+    return `<span style="display:inline-flex; align-items:center; font-size:12px; font-weight:700; padding:4px 10px; border-radius:9999px; ${isSelected ? 'background:var(--primary-orange); color:#FFFFFF; box-shadow:0 2px 8px rgba(243,156,18,0.3);' : 'background:#F4F2E6; color:#555243; border:1px solid #E5E0CE;'}">${tag}</span>`;
+  }).join(' ');
+
   box.innerHTML = `
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:14px;">
       <div style="font-family:var(--font-heading); font-weight:900; font-size:22px; color:#1C1A14; margin-bottom:4px;">${picked.name}</div>
-      <div style="font-size:14px; color:var(--text-muted); line-height:1.4;">${picked.description}</div>
+      <div style="font-size:14px; color:var(--text-muted); line-height:1.4; margin-bottom:10px;">${picked.description}</div>
+      ${allMealTags.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px;">${tagsHtml}</div>` : ''}
     </div>
 
     <div style="width:100%; height:220px; border-radius:22px; overflow:hidden; margin-bottom:16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); background:#F3F1E6;">
@@ -1173,4 +1266,5 @@ window.openImportModal = openImportModal;
 window.closeImportModal = closeImportModal;
 window.searchSpoonacular = searchSpoonacular;
 window.importSpoonacularMeal = importSpoonacularMeal;
+window.clearAllKeywords = clearAllKeywords;
 window.updateImagePreview = updateImagePreview;
