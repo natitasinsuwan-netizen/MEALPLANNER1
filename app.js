@@ -328,7 +328,6 @@ function setupEventListeners() {
     formForgotPasswordScreen.addEventListener('submit', (e) => {
       e.preventDefault();
       const email = (document.getElementById('resetScreenEmail').value || '').trim();
-      const inputOtp = (document.getElementById('resetOtpCode').value || '').trim();
       const password = (document.getElementById('resetScreenPassword').value || '');
       const feedback = document.getElementById('screenResetFeedback');
 
@@ -343,30 +342,13 @@ function setupEventListeners() {
         return;
       }
 
-      if (!inputOtp || inputOtp !== currentGeneratedOtp) {
+      if (!email || !password || password.length < 6) {
         if (feedback) {
           feedback.style.display = 'block';
           feedback.style.background = '#FFF5F5';
           feedback.style.color = '#E53E3E';
           feedback.style.border = '1px solid #FEB2B2';
-          feedback.textContent = '❌ Invalid 6-digit reset code. Please check your email or click Resend code.';
-        }
-        const otpInput = document.getElementById('resetOtpCode');
-        if (otpInput) {
-          otpInput.focus();
-          otpInput.style.borderColor = '#DC2626';
-          otpInput.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.15)';
-        }
-        return;
-      }
-
-      if (!password || password.length < 6) {
-        if (feedback) {
-          feedback.style.display = 'block';
-          feedback.style.background = '#FFF5F5';
-          feedback.style.color = '#E53E3E';
-          feedback.style.border = '1px solid #FEB2B2';
-          feedback.textContent = '❌ Please enter a password of at least 6 characters.';
+          feedback.textContent = 'Please enter a valid email and a password of at least 6 characters.';
         }
         return;
       }
@@ -385,7 +367,7 @@ function setupEventListeners() {
         feedback.style.background = '#ECFDF5';
         feedback.style.color = '#065F46';
         feedback.style.border = '1px solid #A7F3D0';
-        feedback.textContent = `✓ Password updated successfully for ${email}! Redirecting to login...`;
+        feedback.textContent = `✓ Password updated successfully for ${email}!`;
       }
 
       const loginEmail = document.getElementById('loginEmail');
@@ -396,7 +378,7 @@ function setupEventListeners() {
       setTimeout(() => {
         if (feedback) feedback.style.display = 'none';
         showScreen('screenLogin');
-      }, 1500);
+      }, 1200);
     });
   }
 
@@ -1539,40 +1521,14 @@ async function showForgotPasswordScreen() {
   }
 
   const resetEmail = document.getElementById('resetScreenEmail');
-  const resetOtp = document.getElementById('resetOtpCode');
   const resetPass = document.getElementById('resetScreenPassword');
   const feedback = document.getElementById('screenResetFeedback');
-  const subtitle = document.getElementById('recoverySubtitle');
 
   if (resetEmail) resetEmail.value = emailVal;
-  if (resetOtp) { resetOtp.value = ''; resetOtp.style.borderColor = ''; resetOtp.style.boxShadow = ''; }
   if (resetPass) { resetPass.value = ''; resetPass.type = 'password'; }
-
-  if (subtitle) {
-    subtitle.innerHTML = `Sending 6-digit verification code to <strong>${emailVal}</strong>...`;
-  }
+  if (feedback) { feedback.style.display = 'none'; feedback.textContent = ''; }
 
   showScreen('screenForgotPassword');
-
-  const result = await sendRecoveryEmail(emailVal);
-  if (subtitle) {
-    subtitle.innerHTML = `Enter the 6-digit verification code sent to <strong>${emailVal}</strong>.`;
-  }
-
-  if (feedback) {
-    feedback.style.display = 'block';
-    if (result.mode === 'emailjs') {
-      feedback.style.background = '#ECFDF5';
-      feedback.style.color = '#065F46';
-      feedback.style.border = '1px solid #A7F3D0';
-      feedback.textContent = `✓ Verification email dispatched to ${emailVal}! Check your inbox.`;
-    } else {
-      feedback.style.background = '#EFF6FF';
-      feedback.style.color = '#1E40AF';
-      feedback.style.border = '1px solid #BFDBFE';
-      feedback.innerHTML = `✉ <strong>Demo Reset Code:</strong> <span style="font-size:16px; font-weight:900; letter-spacing:0.1em;">${result.otp}</span><br><span style="font-size:12px; font-weight:500;">(When EmailJS keys are connected, this code lands directly in your inbox!)</span>`;
-    }
-  }
 }
 
 // Global Window Bindings for inline HTML handlers
