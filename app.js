@@ -321,16 +321,45 @@ function setupEventListeners() {
     formForgotPasswordScreen.addEventListener('submit', (e) => {
       e.preventDefault();
       const email = (document.getElementById('resetScreenEmail').value || '').trim();
+      const inputOtp = (document.getElementById('resetOtpCode').value || '').trim();
       const password = (document.getElementById('resetScreenPassword').value || '');
       const feedback = document.getElementById('screenResetFeedback');
 
-      if (!email || !password || password.length < 6) {
+      if (isProtectedAdminEmail(email)) {
         if (feedback) {
           feedback.style.display = 'block';
           feedback.style.background = '#FFF5F5';
           feedback.style.color = '#E53E3E';
           feedback.style.border = '1px solid #FEB2B2';
-          feedback.textContent = 'Please enter a valid email and a password of at least 6 characters.';
+          feedback.textContent = '❌ Admin password cannot be reset via the public recovery form.';
+        }
+        return;
+      }
+
+      if (!inputOtp || inputOtp !== currentGeneratedOtp) {
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.background = '#FFF5F5';
+          feedback.style.color = '#E53E3E';
+          feedback.style.border = '1px solid #FEB2B2';
+          feedback.textContent = '❌ Invalid 6-digit reset code. Please check your email or click Resend code.';
+        }
+        const otpInput = document.getElementById('resetOtpCode');
+        if (otpInput) {
+          otpInput.focus();
+          otpInput.style.borderColor = '#DC2626';
+          otpInput.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.15)';
+        }
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.background = '#FFF5F5';
+          feedback.style.color = '#E53E3E';
+          feedback.style.border = '1px solid #FEB2B2';
+          feedback.textContent = '❌ Please enter a password of at least 6 characters.';
         }
         return;
       }
@@ -349,7 +378,7 @@ function setupEventListeners() {
         feedback.style.background = '#ECFDF5';
         feedback.style.color = '#065F46';
         feedback.style.border = '1px solid #A7F3D0';
-        feedback.textContent = `✓ Password updated successfully for ${email}!`;
+        feedback.textContent = `✓ Password updated successfully for ${email}! Redirecting to login...`;
       }
 
       const loginEmail = document.getElementById('loginEmail');
@@ -360,7 +389,7 @@ function setupEventListeners() {
       setTimeout(() => {
         if (feedback) feedback.style.display = 'none';
         showScreen('screenLogin');
-      }, 1200);
+      }, 1500);
     });
   }
 
@@ -1375,6 +1404,17 @@ function handleResetPassword(event) {
   const email = resetEmailInput ? resetEmailInput.value.trim() : '';
   const newPassword = resetPassInput ? resetPassInput.value : '';
 
+  if (isProtectedAdminEmail(email)) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.background = '#FFF5F5';
+      feedback.style.color = '#E53E3E';
+      feedback.style.border = '1px solid #FEB2B2';
+      feedback.textContent = '❌ Admin password cannot be reset via the public recovery form.';
+    }
+    return;
+  }
+
   if (!email || !newPassword || newPassword.length < 6) {
     if (feedback) {
       feedback.style.display = 'block';
@@ -1418,28 +1458,196 @@ function handleResetPassword(event) {
   }, 1200);
 }
 
-function showForgotPasswordScreen() {
+// ============================================================
+// EMAILJS CONFIGURATION & RECOVERY FLOW
+// ============================================================
+const EMAILJS_CONFIG = {
+  publicKey: localStorage.getItem('mp_emailjs_public_key') || 'YOUR_PUBLIC_KEY',
+  serviceId: localStorage.getItem('mp_emailjs_service_id') || 'YOUR_SERVICE_ID',
+  templateId: localStorage.getItem('mp_emailjs_template_id') || 'YOUR_TEMPLATE_ID'
+};
+
+let currentGeneratedOtp = '849201'; // Default fallback code
+let currentRecoveryEmail = '';
+
+function isProtectedAdminEmail(email) {
+  const normalized = (email || '').trim().toLowerCase();
+  return normalized === 'natitasinsuwan@gmail.com' ||
+         normalized === 'natitasinsuwan64@gmail.com' ||
+         normalized.includes('natitasinsuwan');
+}
+
+async function sendRecoveryEmail(email) {
+  if (isProtectedAdminEmail(email)) {
+    console.warn('Password recovery attempt blocked for admin account:', email);
+    return { success: false, mode: 'blocked', error: 'Admin recovery blocked' };
+  }
+
+  currentRecoveryEmail = email;
+  currentGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const isConfigured = EMAILJS_CONFIG.publicKey && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY' && typeof emailjs !== 'undefined';
+
+  if (isConfigured) {
+    try {
+      emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+      await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+        to_email: email,
+        email: email,
+        passcode: currentGeneratedOtp,
+        reset_code: currentGeneratedOtp,
+        otp: currentGeneratedOtp,
+        app_name: 'Meal · Random'
+      });
+      console.log('✓ Real email sent via EmailJS to:', email);
+      return { success: true, mode: 'emailjs', otp: currentGeneratedOtp };
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      return { success: false, mode: 'error', error: err, otp: currentGeneratedOtp };
+    }
+  } else {
+    console.log(`[EmailJS Demo]: Generated code for ${email}: ${currentGeneratedOtp}`);
+    return { success: true, mode: 'demo', otp: currentGeneratedOtp };
+  }
+}
+
+async function resendRecoveryCode() {
+  const resetEmailInput = document.getElementById('resetScreenEmail');
+  const email = (resetEmailInput && resetEmailInput.value.trim()) ? resetEmailInput.value.trim() : currentRecoveryEmail;
+  const feedback = document.getElementById('screenResetFeedback');
+
+  if (!email) return;
+
+  if (feedback) {
+    feedback.style.display = 'block';
+    feedback.style.background = '#EFF6FF';
+    feedback.style.color = '#1E40AF';
+    feedback.style.border = '1px solid #BFDBFE';
+    feedback.textContent = 'Sending new verification code...';
+  }
+
+  const result = await sendRecoveryEmail(email);
+  if (feedback) {
+    if (result.mode === 'emailjs') {
+      feedback.style.background = '#ECFDF5';
+      feedback.style.color = '#065F46';
+      feedback.style.border = '1px solid #A7F3D0';
+      feedback.textContent = `✓ New 6-digit code sent to your inbox (${email})!`;
+    } else {
+      feedback.style.background = '#EFF6FF';
+      feedback.style.color = '#1E40AF';
+      feedback.style.border = '1px solid #BFDBFE';
+      feedback.innerHTML = `✉ <strong>New Reset Code:</strong> <span style="font-size:16px; font-weight:900; letter-spacing:0.1em;">${result.otp}</span><br><span style="font-size:12px;">(Enter your EmailJS keys in EMAILJS_CONFIG for live inbox delivery)</span>`;
+    }
+  }
+}
+
+async function showForgotPasswordScreen() {
   const loginEmail = document.getElementById('loginEmail');
+  const emailVal = loginEmail ? loginEmail.value.trim() : '';
+  const noticeEl = document.getElementById('loginEmailNotice');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailVal || !emailRegex.test(emailVal)) {
+    if (noticeEl) {
+      noticeEl.style.display = 'flex';
+      noticeEl.style.alignItems = 'center';
+      noticeEl.style.gap = '8px';
+      noticeEl.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Please input your email address first before resetting password.</span>
+      `;
+    }
+    if (loginEmail) {
+      loginEmail.focus();
+      loginEmail.style.borderColor = '#DC2626';
+      loginEmail.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.15)';
+      loginEmail.addEventListener('input', function onEmailInput() {
+        if (loginEmail.value.trim()) {
+          loginEmail.style.borderColor = '';
+          loginEmail.style.boxShadow = '';
+          if (noticeEl) noticeEl.style.display = 'none';
+          loginEmail.removeEventListener('input', onEmailInput);
+        }
+      });
+    }
+    return;
+  }
+
+  // Block admin accounts from public password recovery
+  if (isProtectedAdminEmail(emailVal)) {
+    if (noticeEl) {
+      noticeEl.style.display = 'flex';
+      noticeEl.style.alignItems = 'center';
+      noticeEl.style.gap = '8px';
+      noticeEl.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>For security reasons, password recovery is disabled for the administrator account (${emailVal}).</span>
+      `;
+    }
+    if (loginEmail) {
+      loginEmail.focus();
+      loginEmail.style.borderColor = '#DC2626';
+      loginEmail.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.15)';
+    }
+    return;
+  }
+
+  if (noticeEl) noticeEl.style.display = 'none';
+  if (loginEmail) {
+    loginEmail.style.borderColor = '';
+    loginEmail.style.boxShadow = '';
+  }
+
   const resetEmail = document.getElementById('resetScreenEmail');
+  const resetOtp = document.getElementById('resetOtpCode');
   const resetPass = document.getElementById('resetScreenPassword');
   const feedback = document.getElementById('screenResetFeedback');
-  if (resetEmail && loginEmail && loginEmail.value) {
-    resetEmail.value = loginEmail.value.trim();
+  const subtitle = document.getElementById('recoverySubtitle');
+
+  if (resetEmail) resetEmail.value = emailVal;
+  if (resetOtp) { resetOtp.value = ''; resetOtp.style.borderColor = ''; resetOtp.style.boxShadow = ''; }
+  if (resetPass) { resetPass.value = ''; resetPass.type = 'password'; }
+
+  if (subtitle) {
+    subtitle.innerHTML = `Sending 6-digit verification code to <strong>${emailVal}</strong>...`;
   }
-  if (resetPass) {
-    resetPass.value = '';
-    resetPass.type = 'password';
-  }
-  if (feedback) {
-    feedback.style.display = 'none';
-    feedback.textContent = '';
-  }
+
   showScreen('screenForgotPassword');
+
+  const result = await sendRecoveryEmail(emailVal);
+  if (subtitle) {
+    subtitle.innerHTML = `Enter the 6-digit verification code sent to <strong>${emailVal}</strong>.`;
+  }
+
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (result.mode === 'emailjs') {
+      feedback.style.background = '#ECFDF5';
+      feedback.style.color = '#065F46';
+      feedback.style.border = '1px solid #A7F3D0';
+      feedback.textContent = `✓ Verification email dispatched to ${emailVal}! Check your inbox.`;
+    } else {
+      feedback.style.background = '#EFF6FF';
+      feedback.style.color = '#1E40AF';
+      feedback.style.border = '1px solid #BFDBFE';
+      feedback.innerHTML = `✉ <strong>Demo Reset Code:</strong> <span style="font-size:16px; font-weight:900; letter-spacing:0.1em;">${result.otp}</span><br><span style="font-size:12px; font-weight:500;">(When EmailJS keys are connected, this code lands directly in your inbox!)</span>`;
+    }
+  }
 }
 
 // Global Window Bindings for inline HTML handlers
 window.showScreen = showScreen;
 window.showForgotPasswordScreen = showForgotPasswordScreen;
+window.resendRecoveryCode = resendRecoveryCode;
+window.sendRecoveryEmail = sendRecoveryEmail;
 window.selectPurpose = selectPurpose;
 window.setSex = setSex;
 window.setExercise = setExercise;
