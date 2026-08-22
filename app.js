@@ -1375,95 +1375,20 @@ function submitStep5() {
 // ============================================================
 // FORGOT & RESET PASSWORD LOGIC
 // ============================================================
-function openForgotPasswordModal() {
-  const loginEmail = document.getElementById('loginEmail');
-  const resetEmail = document.getElementById('resetEmail');
-  const resetPass = document.getElementById('resetNewPassword');
-  const feedback = document.getElementById('resetFeedbackMessage');
-  
-  if (resetEmail) {
-    resetEmail.value = (loginEmail && loginEmail.value.trim()) ? loginEmail.value.trim() : '';
-  }
-  if (resetPass) {
-    resetPass.value = '';
-    resetPass.type = 'password';
-  }
-  if (feedback) {
-    feedback.style.display = 'none';
-    feedback.textContent = '';
-  }
-
-  const modal = document.getElementById('modalForgotPassword');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeForgotPasswordModal() {
-  const modal = document.getElementById('modalForgotPassword');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleResetPassword(event) {
-  event.preventDefault();
-  const resetEmailInput = document.getElementById('resetEmail');
-  const resetPassInput = document.getElementById('resetNewPassword');
-  const feedback = document.getElementById('resetFeedbackMessage');
-
-  const email = resetEmailInput ? resetEmailInput.value.trim() : '';
-  const newPassword = resetPassInput ? resetPassInput.value : '';
-
-  if (isProtectedAdminEmail(email)) {
-    if (feedback) {
-      feedback.style.display = 'block';
-      feedback.style.background = '#FFF5F5';
-      feedback.style.color = '#E53E3E';
-      feedback.style.border = '1px solid #FEB2B2';
-      feedback.textContent = '❌ Admin password cannot be reset via the public recovery form.';
+// Sanitize any corrupted or tampered local users
+try {
+  const storedUsers = JSON.parse(localStorage.getItem('mp_users') || '{}');
+  let changed = false;
+  ['natitasinsuwan@gmail.com', 'natitasinsuwan64@gmail.com', 'admin@example.com'].forEach(a => {
+    if (storedUsers[a]) {
+      delete storedUsers[a];
+      changed = true;
     }
-    return;
+  });
+  if (changed) {
+    localStorage.setItem('mp_users', JSON.stringify(storedUsers));
   }
-
-  if (!email || !newPassword || newPassword.length < 6) {
-    if (feedback) {
-      feedback.style.display = 'block';
-      feedback.style.background = '#FFF5F5';
-      feedback.style.color = '#E53E3E';
-      feedback.style.border = '1px solid #FEB2B2';
-      feedback.textContent = 'Please enter a valid email and a password of at least 6 characters.';
-    }
-    return;
-  }
-
-  // Update user store in localStorage
-  let users = {};
-  try {
-    users = JSON.parse(localStorage.getItem('mp_users') || '{}');
-  } catch (e) {
-    users = {};
-  }
-  users[email.toLowerCase()] = {
-    email: email,
-    password: newPassword,
-    updatedAt: new Date().toISOString()
-  };
-  localStorage.setItem('mp_users', JSON.stringify(users));
-
-  if (feedback) {
-    feedback.style.display = 'block';
-    feedback.style.background = '#ECFDF5';
-    feedback.style.color = '#065F46';
-    feedback.style.border = '1px solid #A7F3D0';
-    feedback.textContent = `✓ Password updated successfully for ${email}!`;
-  }
-
-  const loginEmail = document.getElementById('loginEmail');
-  const loginPass = document.getElementById('loginPassword');
-  if (loginEmail) loginEmail.value = email;
-  if (loginPass) loginPass.value = newPassword;
-
-  setTimeout(() => {
-    closeForgotPasswordModal();
-  }, 1200);
-}
+} catch(e) {}
 
 // ============================================================
 // EMAILJS CONFIGURATION & RECOVERY FLOW
@@ -1685,6 +1610,3 @@ window.importSpoonacularMeal = importSpoonacularMeal;
 window.clearAllKeywords = clearAllKeywords;
 window.updateImagePreview = updateImagePreview;
 window.togglePasswordVisibility = togglePasswordVisibility;
-window.openForgotPasswordModal = openForgotPasswordModal;
-window.closeForgotPasswordModal = closeForgotPasswordModal;
-window.handleResetPassword = handleResetPassword;
