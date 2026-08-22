@@ -1131,9 +1131,43 @@ function signOutUser() {
   const loginEmail = document.getElementById('loginEmail');
   const loginPass = document.getElementById('loginPassword');
   if (loginEmail) loginEmail.value = '';
-  if (loginPass) loginPass.value = '';
+  if (loginPass) {
+    loginPass.value = '';
+    loginPass.type = 'password';
+  }
+
+  document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    btn.setAttribute('title', 'Show password');
+    btn.setAttribute('aria-label', 'Show password');
+  });
 
   showScreen('screenLogin');
+}
+
+// ============================================================
+// PASSWORD VISIBILITY TOGGLE
+// ============================================================
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+
+  if (btn) {
+    if (isPassword) {
+      // Eye-off icon (password is visible, click to hide)
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
+      btn.setAttribute('title', 'Hide password');
+      btn.setAttribute('aria-label', 'Hide password');
+    } else {
+      // Eye icon (password is hidden, click to show)
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      btn.setAttribute('title', 'Show password');
+      btn.setAttribute('aria-label', 'Show password');
+    }
+  }
 }
 
 // ============================================================
@@ -1268,3 +1302,4 @@ window.searchSpoonacular = searchSpoonacular;
 window.importSpoonacularMeal = importSpoonacularMeal;
 window.clearAllKeywords = clearAllKeywords;
 window.updateImagePreview = updateImagePreview;
+window.togglePasswordVisibility = togglePasswordVisibility;
