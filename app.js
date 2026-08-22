@@ -182,7 +182,7 @@ function updateBottomNavVisibility() {
 // ============================================================
 function showScreen(screenId) {
   const screens = [
-    'screenLogin', 'screenRegister', 'screenPurpose', 
+    'screenLogin', 'screenRegister', 'screenForgotPassword', 'screenPurpose', 
     'screenStep2Body', 'screenStep3Exercise', 'screenStep4Dietary', 
     'screenStep5Allergies', 'screenDashboard', 'screenSettings', 'screenAdmin'
   ];
@@ -296,6 +296,71 @@ function setupEventListeners() {
     btnLinkToLogin.addEventListener('click', (e) => {
       e.preventDefault();
       showScreen('screenLogin');
+    });
+  }
+
+  // Forgot Password Screen Navigation & Form
+  const btnForgotPassword = document.getElementById('btnForgotPassword');
+  if (btnForgotPassword) {
+    btnForgotPassword.addEventListener('click', (e) => {
+      e.preventDefault();
+      showForgotPasswordScreen();
+    });
+  }
+
+  const btnBackToLoginFromReset = document.getElementById('btnBackToLoginFromReset');
+  if (btnBackToLoginFromReset) {
+    btnBackToLoginFromReset.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('screenLogin');
+    });
+  }
+
+  const formForgotPasswordScreen = document.getElementById('formForgotPasswordScreen');
+  if (formForgotPasswordScreen) {
+    formForgotPasswordScreen.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = (document.getElementById('resetScreenEmail').value || '').trim();
+      const password = (document.getElementById('resetScreenPassword').value || '');
+      const feedback = document.getElementById('screenResetFeedback');
+
+      if (!email || !password || password.length < 6) {
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.background = '#FFF5F5';
+          feedback.style.color = '#E53E3E';
+          feedback.style.border = '1px solid #FEB2B2';
+          feedback.textContent = 'Please enter a valid email and a password of at least 6 characters.';
+        }
+        return;
+      }
+
+      let users = {};
+      try {
+        users = JSON.parse(localStorage.getItem('mp_users') || '{}');
+      } catch (err) {
+        users = {};
+      }
+      users[email.toLowerCase()] = { email, password, updatedAt: new Date().toISOString() };
+      localStorage.setItem('mp_users', JSON.stringify(users));
+
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.background = '#ECFDF5';
+        feedback.style.color = '#065F46';
+        feedback.style.border = '1px solid #A7F3D0';
+        feedback.textContent = `✓ Password updated successfully for ${email}!`;
+      }
+
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPass = document.getElementById('loginPassword');
+      if (loginEmail) loginEmail.value = email;
+      if (loginPass) loginPass.value = password;
+
+      setTimeout(() => {
+        if (feedback) feedback.style.display = 'none';
+        showScreen('screenLogin');
+      }, 1200);
     });
   }
 
@@ -1353,8 +1418,28 @@ function handleResetPassword(event) {
   }, 1200);
 }
 
+function showForgotPasswordScreen() {
+  const loginEmail = document.getElementById('loginEmail');
+  const resetEmail = document.getElementById('resetScreenEmail');
+  const resetPass = document.getElementById('resetScreenPassword');
+  const feedback = document.getElementById('screenResetFeedback');
+  if (resetEmail && loginEmail && loginEmail.value) {
+    resetEmail.value = loginEmail.value.trim();
+  }
+  if (resetPass) {
+    resetPass.value = '';
+    resetPass.type = 'password';
+  }
+  if (feedback) {
+    feedback.style.display = 'none';
+    feedback.textContent = '';
+  }
+  showScreen('screenForgotPassword');
+}
+
 // Global Window Bindings for inline HTML handlers
 window.showScreen = showScreen;
+window.showForgotPasswordScreen = showForgotPasswordScreen;
 window.selectPurpose = selectPurpose;
 window.setSex = setSex;
 window.setExercise = setExercise;
