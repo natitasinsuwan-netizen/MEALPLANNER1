@@ -271,7 +271,14 @@ function setupEventListeners() {
     formRegister.addEventListener('submit', (e) => {
       e.preventDefault();
       const regEmailInput = document.getElementById('registerEmail');
-      currentUserEmail = regEmailInput ? (regEmailInput.value.trim() || 'user@example.com') : 'user@example.com';
+      const email = regEmailInput ? regEmailInput.value.trim() : '';
+
+      if (isProtectedAdminEmail(email)) {
+        alert('❌ The administrator account (natitasinsuwan@gmail.com) cannot be created or modified through public registration.');
+        return;
+      }
+
+      currentUserEmail = email || 'user@example.com';
       isLoggedIn = true;
       sessionStorage.setItem('mp_is_logged_in', 'true');
       sessionStorage.setItem('mp_user_email', currentUserEmail);
