@@ -2,7 +2,7 @@ const DEFAULT_MEALS = [
   {
     "id": 1,
     "name": "Pad Thai",
-    "description": "Stir-fried rice noodles with egg, tofu, peanuts, lime and tamarind sauce.",
+    "description": "Stir-fried rice noodles with egg, tofu, peanuts, lime and tamarind sauce (Authentic Thai Style).",
     "image_url": "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80",
     "calories": 486,
     "fat_g": 14,
