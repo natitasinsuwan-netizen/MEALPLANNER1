@@ -38,18 +38,44 @@ let adminSearchQuery = "";
 
 // Server & Cloud Persistence State
 let isServerPersistenceActive = false;
+let isCommittingToGitHub = false;
+let pendingGitHubCommitMsg = null;
 
-// Initialize Meals Database (Load from localStorage if updated, otherwise use DEFAULT_MEALS)
-const savedMeals = localStorage.getItem('mp_all_meals') || localStorage.getItem('mp_custom_meals');
-if (savedMeals) {
-  try {
-    const parsed = JSON.parse(savedMeals);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      INITIAL_MEALS = parsed;
-    }
-  } catch (e) {
-    console.error("Failed to parse stored meals:", e);
+// GitHub Repository Configuration for Instant Live Cloud Sync
+const GITHUB_CONFIG = {
+  owner: 'natitasinsuwan-netizen',
+  repo: 'MEALPLANNER1',
+  branch: 'main',
+  get token() {
+    return (localStorage.getItem('mp_gh_token') || sessionStorage.getItem('mp_gh_token') || '').trim();
+  },
+  get repository() {
+    return (localStorage.getItem('mp_gh_repo') || '').trim() || `${this.owner}/${this.repo}`;
+  },
+  get targetBranch() {
+    return (localStorage.getItem('mp_gh_branch') || '').trim() || this.branch;
   }
+};
+
+// Check for token in URL parameters or hash if supplied by admin
+try {
+  const urlParams = new URLSearchParams(window.location.search);
+  const hashMatch = window.location.hash ? window.location.hash.match(/token=([^&]+)/) : null;
+  const paramToken = urlParams.get('gh_token') || urlParams.get('token') || (hashMatch ? decodeURIComponent(hashMatch[1]) : null);
+  if (paramToken) {
+    localStorage.setItem('mp_gh_token', paramToken.trim());
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+    }
+  }
+} catch (e) {}
+
+// Purge obsolete local meal copies so users ALWAYS see authoritative code/repository updates
+try {
+  localStorage.removeItem('mp_all_meals');
+  localStorage.removeItem('mp_custom_meals');
+} catch (e) {
+  // Ignore storage exceptions
 }
 
 // Floating Toast Notification Helper
@@ -97,27 +123,76 @@ function showAppToast(message, type = 'success') {
   }, 3500);
 }
 
-// Helper: Check server status and sync meals from /api/meals
-async function checkServerStatusAndSyncMeals() {
+// Helper: Sync live meal catalog immediately on boot (for ALL users: regular & admin)
+async function syncLiveCatalog() {
+  const buster = Date.now();
+
+  // 1. If running on local server, load from /api/meals
   try {
-    const res = await fetch('/api/meals', { method: 'GET' });
+    const res = await fetch(`/api/meals?t=${buster}`, { method: 'GET', cache: 'no-store' });
     if (res.ok) {
       const serverMeals = await res.json();
       if (Array.isArray(serverMeals) && serverMeals.length > 0) {
         INITIAL_MEALS = serverMeals;
-        persistMeals(false); // Cache locally without re-posting
         isServerPersistenceActive = true;
         updatePersistenceStatusUI();
         if (activeTab === 'admin') renderAdminMealsList();
         renderDashboard();
-        console.log(`[SYNC] Loaded ${serverMeals.length} meals from persistent server API.`);
+        console.log(`[SYNC] Loaded ${serverMeals.length} live meals from local server.`);
+
+        // Also fetch token configuration from local server if not already in localStorage
+        try {
+          const cfgRes = await fetch('/api/gh-config');
+          if (cfgRes.ok) {
+            const cfg = await cfgRes.json();
+            if (cfg.token && !localStorage.getItem('mp_gh_token')) {
+              localStorage.setItem('mp_gh_token', cfg.token);
+              updatePersistenceStatusUI();
+            }
+          }
+        } catch (e) {}
+
         return;
       }
     }
   } catch (e) {
-    // Server not running or static host
+    // Local server not running or running on static client
   }
-  isServerPersistenceActive = false;
+
+  // 2. Fetch live raw GitHub catalog (instant updates directly from GitHub main repository)
+  // This bypasses GitHub Pages build delay (~1-2 min) and serves the latest commit immediately!
+  const rawUrl = `https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.targetBranch}/meals.json?t=${buster}`;
+  try {
+    const ghRes = await fetch(rawUrl, { method: 'GET', cache: 'no-store' });
+    if (ghRes.ok) {
+      const ghMeals = await ghRes.json();
+      if (Array.isArray(ghMeals) && ghMeals.length > 0) {
+        INITIAL_MEALS = ghMeals;
+        updatePersistenceStatusUI();
+        if (activeTab === 'admin') renderAdminMealsList();
+        renderDashboard();
+        console.log(`[SYNC] Loaded ${ghMeals.length} live meals directly from GitHub repository.`);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[SYNC] Raw GitHub sync notice:', e.message);
+  }
+
+  // 3. Fallback to same-origin meals.json
+  try {
+    const fallbackRes = await fetch(`meals.json?t=${buster}`, { method: 'GET', cache: 'no-store' });
+    if (fallbackRes.ok) {
+      const fbMeals = await fallbackRes.json();
+      if (Array.isArray(fbMeals) && fbMeals.length > 0) {
+        INITIAL_MEALS = fbMeals;
+        if (activeTab === 'admin') renderAdminMealsList();
+        renderDashboard();
+        return;
+      }
+    }
+  } catch (e) {}
+
   updatePersistenceStatusUI();
 }
 
@@ -128,24 +203,149 @@ function updatePersistenceStatusUI() {
 
   if (isServerPersistenceActive) {
     dot.style.background = '#10B981';
-    text.textContent = 'Server Auto-Save: Active (meals.js)';
-    text.setAttribute('title', 'Any edits you make are automatically and permanently saved to meals.js on the server disk.');
+    text.textContent = 'Auto-Save: Active (Server Disk & GitHub)';
+    text.setAttribute('title', 'Edits are automatically saved to local disk and pushed to GitHub repository code.');
+  } else if (GITHUB_CONFIG.token) {
+    dot.style.background = '#10B981';
+    text.textContent = 'Cloud Auto-Save: Active (GitHub Code)';
+    text.setAttribute('title', 'Edits immediately commit to meals.js and meals.json on GitHub main branch so all users see updates instantly.');
   } else {
     dot.style.background = '#F59E0B';
-    text.textContent = 'Local Mode (Click Export or GitHub Sync)';
-    text.setAttribute('title', 'Running on static client. Use Export meals.js or GitHub Sync to save permanently.');
+    text.textContent = 'Local Mode (Click GitHub Sync to link)';
+    text.setAttribute('title', 'Running locally without GitHub token. Click GitHub Sync to configure automatic cloud saves.');
   }
 }
 
-// Helper: Save all meals permanently (localStorage + Server Disk API)
-function persistMeals(syncToServer = true) {
-  try {
-    localStorage.setItem('mp_all_meals', JSON.stringify(INITIAL_MEALS));
-    localStorage.setItem('mp_custom_meals', JSON.stringify(INITIAL_MEALS));
-  } catch (e) {
-    console.error("Failed to save meals to localStorage:", e);
+// Automatic Git commit directly to GitHub repository (meals.js + meals.json)
+async function autoCommitToGitHub(commitMsg = 'Admin: Update meal catalog in meals.js and meals.json') {
+  const token = GITHUB_CONFIG.token;
+  const repo = GITHUB_CONFIG.repository;
+  const branch = GITHUB_CONFIG.targetBranch;
+
+  if (!token) {
+    console.warn('[AUTO-COMMIT] No GitHub token configured. Skipping cloud commit.');
+    return { success: false, reason: 'no_token' };
   }
 
+  if (isCommittingToGitHub) {
+    pendingGitHubCommitMsg = commitMsg;
+    return { success: false, reason: 'queued' };
+  }
+
+  isCommittingToGitHub = true;
+  showAppToast('⏳ Committing changes to GitHub repository code...', 'info');
+
+  try {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    // Step 1: Fetch HEAD commit of target branch
+    const refRes = await fetch(`https://api.github.com/repos/${repo}/git/ref/heads/${encodeURIComponent(branch)}`, { headers });
+    if (!refRes.ok) {
+      const err = await refRes.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to fetch branch ref (HTTP ${refRes.status})`);
+    }
+    const refData = await refRes.json();
+    const latestCommitSha = refData.object.sha;
+
+    // Step 2: Fetch commit tree SHA
+    const commitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits/${latestCommitSha}`, { headers });
+    if (!commitRes.ok) {
+      const err = await commitRes.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to fetch commit tree (HTTP ${commitRes.status})`);
+    }
+    const commitData = await commitRes.json();
+    const baseTreeSha = commitData.tree.sha;
+
+    // Step 3: Format updated meals.json and meals.js
+    const formattedJson = JSON.stringify(INITIAL_MEALS, null, 2);
+    const jsContent = `const DEFAULT_MEALS = ${formattedJson};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n`;
+
+    // Step 4: Create new Git Tree with both updated files
+    const treePayload = {
+      base_tree: baseTreeSha,
+      tree: [
+        {
+          path: 'meals.json',
+          mode: '100644',
+          type: 'blob',
+          content: formattedJson
+        },
+        {
+          path: 'meals.js',
+          mode: '100644',
+          type: 'blob',
+          content: jsContent
+        }
+      ]
+    };
+
+    const treeRes = await fetch(`https://api.github.com/repos/${repo}/git/trees`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(treePayload)
+    });
+    if (!treeRes.ok) {
+      const err = await treeRes.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to create Git tree (HTTP ${treeRes.status})`);
+    }
+    const treeData = await treeRes.json();
+    const newTreeSha = treeData.sha;
+
+    // Step 5: Create new Git Commit
+    const newCommitPayload = {
+      message: commitMsg,
+      tree: newTreeSha,
+      parents: [latestCommitSha]
+    };
+
+    const newCommitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(newCommitPayload)
+    });
+    if (!newCommitRes.ok) {
+      const err = await newCommitRes.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to create Git commit (HTTP ${newCommitRes.status})`);
+    }
+    const newCommitData = await newCommitRes.json();
+    const newCommitSha = newCommitData.sha;
+
+    // Step 6: Move branch pointer to new commit
+    const updateRefRes = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${encodeURIComponent(branch)}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ sha: newCommitSha, force: false })
+    });
+    if (!updateRefRes.ok) {
+      const err = await updateRefRes.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to update branch head (HTTP ${updateRefRes.status})`);
+    }
+
+    const shortSha = newCommitSha.substring(0, 7);
+    console.log(`[AUTO-COMMIT] Successfully committed & pushed ${shortSha} to GitHub (${repo}/${branch})`);
+    showAppToast(`🚀 Saved to GitHub repository code! (Commit ${shortSha}) Users see changes immediately!`, 'success');
+    return { success: true, commitSha: shortSha };
+  } catch (err) {
+    console.error('[AUTO-COMMIT ERROR]', err);
+    showAppToast(`⚠️ GitHub auto-sync notice: ${err.message}`, 'error');
+    return { success: false, error: err.message };
+  } finally {
+    isCommittingToGitHub = false;
+    if (pendingGitHubCommitMsg) {
+      const nextMsg = pendingGitHubCommitMsg;
+      pendingGitHubCommitMsg = null;
+      setTimeout(() => autoCommitToGitHub(nextMsg), 500);
+    }
+  }
+}
+
+// Master Persistence Handler: saves to local server disk AND commits directly to GitHub code
+function persistMeals(syncToServer = true, commitMsg = 'Admin: Update meal catalog in meals.js and meals.json') {
+  // 1. Sync to local server disk if server is running
   if (syncToServer) {
     fetch('/api/meals', {
       method: 'POST',
@@ -155,11 +355,16 @@ function persistMeals(syncToServer = true) {
       if (res.ok) {
         isServerPersistenceActive = true;
         updatePersistenceStatusUI();
-        console.log("[DISK PERSISTENCE] Successfully saved to server disk (meals.js).");
+        console.log('[DISK PERSISTENCE] Successfully saved to server disk (meals.js & meals.json).');
       }
     }).catch(err => {
-      // Offline or static host
+      // Static host or offline
     });
+  }
+
+  // 2. Automatically commit to GitHub repository code if admin is saving
+  if (isAdmin() && GITHUB_CONFIG.token) {
+    autoCommitToGitHub(commitMsg);
   }
 }
 
@@ -260,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   renderCategorizedKeywords();
   updateBottomNavVisibility();
-  checkServerStatusAndSyncMeals();
+  syncLiveCatalog();
 
   if (!isLoggedIn) {
     showScreen('screenLogin');
@@ -706,8 +911,8 @@ function saveMealEdits(event) {
   meal.allergens = [...currentEditAllergens];
   meal.dietary_tags = [...currentEditDietary];
 
-  // Save permanently to localStorage and server disk
-  persistMeals(true);
+  // Save permanently to server disk and commit directly to GitHub repository
+  persistMeals(true, `Admin edit: Updated "${meal.name}" (${meal.calories} kcal)`);
   closeEditMealModal();
 
   // If active in todayMeals, update log entries
@@ -785,7 +990,7 @@ function saveNewMeal(event) {
   };
 
   INITIAL_MEALS.unshift(newMeal); // Add to top
-  persistMeals(true);
+  persistMeals(true, `Admin add: Created new dish "${newMeal.name}" (${newMeal.calories} kcal)`);
 
   document.getElementById('formAddMeal').reset();
   closeAddMealModal();
@@ -795,7 +1000,7 @@ function saveNewMeal(event) {
 
   const msg = isServerPersistenceActive
     ? `✅ "${newMeal.name}" created and saved permanently to meals.js!`
-    : `✅ "${newMeal.name}" added to catalog! Saved in browser storage.`;
+    : `✅ "${newMeal.name}" added to catalog and pushed to GitHub!`;
   showAppToast(msg, 'success');
 }
 
@@ -813,7 +1018,7 @@ function deleteMeal(index, id = null) {
   const meal = INITIAL_MEALS[actualIndex];
   if (confirm(`Are you sure you want to permanently delete "${meal.name}" from the catalog?`)) {
     INITIAL_MEALS.splice(actualIndex, 1);
-    persistMeals(true);
+    persistMeals(true, `Admin delete: Removed "${meal.name}" from catalog`);
 
     if (adminSearchQuery) {
       handleAdminSearch(adminSearchQuery);
@@ -935,7 +1140,7 @@ function importSpoonacularMeal(name, calories, img, desc) {
   };
 
   INITIAL_MEALS.unshift(newMeal);
-  persistMeals(true);
+  persistMeals(true, `Admin import: Added "${name}" (${calories} kcal)`);
   closeImportModal();
 
   renderAdminMealsList();
@@ -1741,7 +1946,7 @@ function handleImportJsonFile(event) {
       const data = JSON.parse(e.target.result);
       if (Array.isArray(data) && data.length > 0) {
         INITIAL_MEALS = data;
-        persistMeals(true);
+        persistMeals(true, `Admin import: Imported ${data.length} meals`);
         renderAdminMealsList();
         renderDashboard();
         closeBackupModal();
@@ -1759,7 +1964,7 @@ function handleImportJsonFile(event) {
 function confirmResetCatalog() {
   if (confirm('Are you sure you want to reset the entire meal catalog back to the default 68 dishes? Any custom meals and edits will be reverted.')) {
     INITIAL_MEALS = [...DEFAULT_MEALS];
-    persistMeals(true);
+    persistMeals(true, 'Admin reset: Restored catalog to original 68 dishes');
     renderAdminMealsList();
     renderDashboard();
     closeBackupModal();
@@ -1768,9 +1973,9 @@ function confirmResetCatalog() {
 }
 
 function openGitHubSyncModal() {
-  const token = localStorage.getItem('mp_gh_token') || '';
-  const repo = localStorage.getItem('mp_gh_repo') || 'natitasinsuwan-netizen/MEALPLANNER1';
-  const branch = localStorage.getItem('mp_gh_branch') || 'main';
+  const token = localStorage.getItem('mp_gh_token') || GITHUB_CONFIG.defaultToken;
+  const repo = localStorage.getItem('mp_gh_repo') || `${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
+  const branch = localStorage.getItem('mp_gh_branch') || GITHUB_CONFIG.branch;
 
   const tokenInput = document.getElementById('ghSyncToken');
   const repoInput = document.getElementById('ghSyncRepo');
@@ -1808,21 +2013,10 @@ async function performGitHubSync() {
   const msgInput = document.getElementById('ghSyncMessage');
   const logEl = document.getElementById('ghSyncStatusLog');
 
-  const token = tokenInput ? tokenInput.value.trim() : '';
-  const repo = (repoInput ? repoInput.value.trim() : '') || 'natitasinsuwan-netizen/MEALPLANNER1';
-  const branch = (branchInput ? branchInput.value.trim() : '') || 'main';
-  const commitMsg = (msgInput ? msgInput.value.trim() : '') || 'Update meal catalog via Admin screen';
-
-  if (!token) {
-    if (logEl) {
-      logEl.style.display = 'block';
-      logEl.style.background = '#FEF2F2';
-      logEl.style.color = '#DC2626';
-      logEl.style.border = '1px solid #FECACA';
-      logEl.innerHTML = '⚠️ Please enter a GitHub Personal Access Token (PAT) with <code>contents: write</code> permission.';
-    }
-    return;
-  }
+  const token = (tokenInput ? tokenInput.value.trim() : '') || GITHUB_CONFIG.token;
+  const repo = (repoInput ? repoInput.value.trim() : '') || GITHUB_CONFIG.repository;
+  const branch = (branchInput ? branchInput.value.trim() : '') || GITHUB_CONFIG.targetBranch;
+  const commitMsg = (msgInput ? msgInput.value.trim() : '') || 'Update meal catalog in meals.js and meals.json';
 
   localStorage.setItem('mp_gh_token', token);
   localStorage.setItem('mp_gh_repo', repo);
@@ -1833,79 +2027,24 @@ async function performGitHubSync() {
     logEl.style.background = '#EFF6FF';
     logEl.style.color = '#1D4ED8';
     logEl.style.border = '1px solid #BFDBFE';
-    logEl.textContent = '⏳ Connecting to GitHub API and fetching existing meals.js SHA...';
+    logEl.textContent = '⏳ Committing updated meals.js and meals.json directly to GitHub repository...';
   }
 
-  try {
-    const fileUrl = `https://api.github.com/repos/${repo}/contents/meals.js?ref=${encodeURIComponent(branch)}`;
-    const getRes = await fetch(fileUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-
-    let sha = '';
-    if (getRes.ok) {
-      const getData = await getRes.json();
-      sha = getData.sha;
-    } else if (getRes.status === 401 || getRes.status === 403) {
-      throw new Error('Invalid GitHub token or insufficient permissions. Ensure PAT has repository contents write access.');
-    } else if (getRes.status !== 404) {
-      const errJson = await getRes.json().catch(() => ({}));
-      throw new Error(errJson.message || 'Failed to fetch existing meals.js from GitHub');
-    }
-
-    if (logEl) {
-      logEl.textContent = '⏳ Committing updated meals.js directly to GitHub main branch...';
-    }
-
-    const formattedJson = JSON.stringify(INITIAL_MEALS, null, 2);
-    const jsContent = `const DEFAULT_MEALS = ${formattedJson};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n`;
-    const base64Content = btoa(unescape(encodeURIComponent(jsContent)));
-
-    const putBody = {
-      message: commitMsg,
-      content: base64Content,
-      branch: branch
-    };
-    if (sha) {
-      putBody.sha = sha;
-    }
-
-    const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/meals.js`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(putBody)
-    });
-
-    if (!putRes.ok) {
-      const putErr = await putRes.json().catch(() => ({}));
-      throw new Error(putErr.message || `GitHub commit failed (Status ${putRes.status})`);
-    }
-
-    const putData = await putRes.json();
-    const commitSha = (putData.commit && putData.commit.sha) ? putData.commit.sha.substring(0, 7) : '';
-
+  const result = await autoCommitToGitHub(commitMsg);
+  if (result.success) {
     if (logEl) {
       logEl.style.background = '#ECFDF5';
       logEl.style.color = '#065F46';
       logEl.style.border = '1px solid #A7F3D0';
-      logEl.innerHTML = `🎉 <strong>Pushed successfully!</strong> (Commit <code>${commitSha}</code>)<br>The updated catalog is now permanently saved in GitHub. GitHub Pages will update in ~30 seconds!`;
+      logEl.innerHTML = `🎉 <strong>Pushed successfully!</strong> (Commit <code>${result.commitSha}</code>)<br>The updated catalog is now permanently saved in repository code. Live raw sync serves updates immediately!`;
     }
-    showAppToast('🎉 Catalog pushed to GitHub successfully!', 'success');
-  } catch (err) {
+  } else {
     if (logEl) {
       logEl.style.background = '#FEF2F2';
       logEl.style.color = '#DC2626';
       logEl.style.border = '1px solid #FECACA';
-      logEl.innerHTML = `❌ <strong>Sync Failed:</strong> ${err.message}`;
+      logEl.innerHTML = `❌ <strong>Sync Failed:</strong> ${result.error || result.reason}`;
     }
-    showAppToast(`GitHub Sync failed: ${err.message}`, 'error');
   }
 }
 

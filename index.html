@@ -1932,10 +1932,13 @@
   <!-- FLOATING APP TOAST -->
   <div id="appToast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:99999; padding:12px 22px; border-radius:9999px; font-size:13.5px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,0.18); transition:all 0.3s ease; text-align:center; max-width:90%;"></div>
 
-  <!-- External SDKs & Scripts -->
+  <!-- External SDKs & Scripts (Dynamic Cache Buster for immediate updates) -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="meals.js?v=20260822_7"></script>
-  <script src="app.js?v=20260822_7"></script>
+  <script>
+    var scriptCacheBuster = Date.now();
+    document.write('<script src="meals.js?t=' + scriptCacheBuster + '"><\/script>');
+    document.write('<script src="app.js?t=' + scriptCacheBuster + '"><\/script>');
+  </script>
 
 </body>
 </html>

@@ -9,7 +9,9 @@ import json
 import os
 import re
 import sys
+import threading
 import urllib.parse
+import urllib.request
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -19,6 +21,103 @@ if hasattr(sys.stderr, "reconfigure"):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MEALS_JS_PATH = os.path.join(BASE_DIR, "meals.js")
 MEALS_JSON_PATH = os.path.join(BASE_DIR, "meals.json")
+
+def get_github_token():
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if not token:
+        token_file = os.path.join(BASE_DIR, ".github_token")
+        if os.path.exists(token_file):
+            try:
+                with open(token_file, "r", encoding="utf-8") as f:
+                    token = f.read().strip()
+            except Exception:
+                pass
+    return token
+
+GITHUB_TOKEN = get_github_token()
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "natitasinsuwan-netizen/MEALPLANNER1")
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")
+
+
+def sync_to_github_background(meals_data, message="Admin: Update meal catalog via local server"):
+    """Commit meals.js and meals.json directly to GitHub repository in background."""
+    if not GITHUB_TOKEN:
+        return
+
+    def _worker():
+        try:
+            headers = {
+                "Authorization": f"Bearer {GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json",
+                "Content-Type": "application/json",
+                "User-Agent": "MealPlanner-ServerSync"
+            }
+            # 1. Get HEAD commit of main branch
+            ref_url = f"https://api.github.com/repos/{GITHUB_REPO}/git/ref/heads/{GITHUB_BRANCH}"
+            req = urllib.request.Request(ref_url, headers=headers)
+            with urllib.request.urlopen(req) as resp:
+                head_data = json.loads(resp.read().decode("utf-8"))
+                head_sha = head_data["object"]["sha"]
+
+            # 2. Get tree SHA
+            commit_url = f"https://api.github.com/repos/{GITHUB_REPO}/git/commits/{head_sha}"
+            req = urllib.request.Request(commit_url, headers=headers)
+            with urllib.request.urlopen(req) as resp:
+                commit_data = json.loads(resp.read().decode("utf-8"))
+                tree_sha = commit_data["tree"]["sha"]
+
+            # 3. Create tree
+            formatted_json = json.dumps(meals_data, indent=2, ensure_ascii=False)
+            js_content = f"const DEFAULT_MEALS = {formatted_json};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n"
+
+            tree_payload = {
+                "base_tree": tree_sha,
+                "tree": [
+                    {"path": "meals.json", "mode": "100644", "type": "blob", "content": formatted_json},
+                    {"path": "meals.js", "mode": "100644", "type": "blob", "content": js_content}
+                ]
+            }
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{GITHUB_REPO}/git/trees",
+                data=json.dumps(tree_payload).encode("utf-8"),
+                headers=headers,
+                method="POST"
+            )
+            with urllib.request.urlopen(req) as resp:
+                new_tree_sha = json.loads(resp.read().decode("utf-8"))["sha"]
+
+            # 4. Create commit
+            commit_payload = {
+                "message": message,
+                "tree": new_tree_sha,
+                "parents": [head_sha]
+            }
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{GITHUB_REPO}/git/commits",
+                data=json.dumps(commit_payload).encode("utf-8"),
+                headers=headers,
+                method="POST"
+            )
+            with urllib.request.urlopen(req) as resp:
+                new_commit_sha = json.loads(resp.read().decode("utf-8"))["sha"]
+
+            # 5. Update branch ref
+            update_payload = {"sha": new_commit_sha, "force": False}
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{GITHUB_REPO}/git/refs/heads/{GITHUB_BRANCH}",
+                data=json.dumps(update_payload).encode("utf-8"),
+                headers=headers,
+                method="PATCH"
+            )
+            with urllib.request.urlopen(req) as resp:
+                pass
+
+            print(f"[GITHUB SYNC] Successfully pushed commit {new_commit_sha[:7]} to {GITHUB_REPO}/{GITHUB_BRANCH}")
+        except Exception as err:
+            print(f"[GITHUB SYNC NOTICE] Cloud sync exception: {err}", file=sys.stderr)
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
 
 
 def load_meals_from_file():
@@ -102,6 +201,20 @@ class MealPlannerHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(meals, ensure_ascii=False).encode("utf-8"))
             return
 
+        if path == "/api/gh-config":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._set_cors_headers()
+            self.end_headers()
+            resp = {
+                "has_token": bool(GITHUB_TOKEN),
+                "token": GITHUB_TOKEN,
+                "repo": GITHUB_REPO,
+                "branch": GITHUB_BRANCH
+            }
+            self.wfile.write(json.dumps(resp).encode("utf-8"))
+            return
+
         # Default static file handling
         return super().do_GET()
 
@@ -126,6 +239,9 @@ class MealPlannerHandler(http.server.SimpleHTTPRequestHandler):
                 # Save permanently to disk
                 save_meals_to_disk(data)
                 print(f"[DISK SAVE] Successfully persisted {len(data)} meals permanently to meals.js & meals.json")
+
+                # Sync to GitHub repository code in background so all users see updates
+                sync_to_github_background(data)
 
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
