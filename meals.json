@@ -1,4 +1,4 @@
-const DEFAULT_MEALS = [
+[
   {
     "id": 1,
     "name": "Pad Thai",
@@ -2223,6 +2223,4 @@ const DEFAULT_MEALS = [
     "allergens": [],
     "low_fat": true
   }
-];
-
-let INITIAL_MEALS = [...DEFAULT_MEALS];
+]

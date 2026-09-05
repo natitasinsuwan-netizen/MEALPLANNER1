@@ -53,7 +53,12 @@ When running the local server:
 ```
 ├── index.html     # Responsive Single-Page Application (SPA) HTML layout, CSS tokens & Admin screens
 ├── app.js         # Core application logic, Admin controls, Edit Everything modals, Spoonacular API
-├── meals.js       # Database of 68 diverse meals with macro breakdown, tags, and photos
+├── meals.js       # Database of 68 diverse meals (automatically rewritten on admin edits)
+├── server.py      # Zero-dependency Python server with permanent disk persistence for meals.js
+├── backend/       # FastAPI backend for Docker container & Railway cloud deployments
+│   ├── main.py
+│   └── requirements.txt
+├── Dockerfile     # Container deployment configuration
 └── README.md      # Project documentation
 ```
 
@@ -61,8 +66,27 @@ When running the local server:
 
 ## 💻 How to Run Locally
 
-Serve with Python:
+### Option 1: Persistent Server (Recommended)
+Automatically persists all Admin edits directly into `meals.js` on disk:
 ```bash
-python -m http.server 8094
+python server.py 8094
 ```
 Then open: **http://localhost:8094** in your browser.
+
+### Option 2: Docker / Railway Container
+```bash
+docker build -t mealplanner1 .
+docker run -p 8080:8080 mealplanner1
+```
+
+---
+
+## 💾 Permanent Saving for Admin Menu Edits
+
+When logged into the Admin Account (`natitasinsuwan@gmail.com`):
+1. **Local & Server Mode**: All edits (updating dishes, adding new meals, deletions) are sent via `POST /api/meals` and **written directly to `meals.js` on disk**. All sessions, devices, and git tracking reflect the permanent change.
+2. **GitHub Pages Mode (`*.github.io`)**:
+   - **Export meals.js**: Click `Export meals.js` in the Admin screen to instantly download the generated `meals.js` file to replace in your repository.
+   - **GitHub 1-Click Sync**: Configure your GitHub token in the Admin screen (`GitHub Sync`) to commit and push updated meals directly to GitHub `main` branch with zero command-line steps!
+   - **Backup & Restore**: Export or import the catalog as clean JSON anytime.
+

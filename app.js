@@ -36,6 +36,9 @@ let selectedKeywords = new Set();
 let todayMeals = [];
 let adminSearchQuery = "";
 
+// Server & Cloud Persistence State
+let isServerPersistenceActive = false;
+
 // Initialize Meals Database (Load from localStorage if updated, otherwise use DEFAULT_MEALS)
 const savedMeals = localStorage.getItem('mp_all_meals') || localStorage.getItem('mp_custom_meals');
 if (savedMeals) {
@@ -49,10 +52,115 @@ if (savedMeals) {
   }
 }
 
-// Helper: Save all meals to localStorage
-function persistMeals() {
-  localStorage.setItem('mp_all_meals', JSON.stringify(INITIAL_MEALS));
-  localStorage.setItem('mp_custom_meals', JSON.stringify(INITIAL_MEALS));
+// Floating Toast Notification Helper
+let toastTimeout = null;
+function showAppToast(message, type = 'success') {
+  const toast = document.getElementById('appToast');
+  if (!toast) {
+    console.log(message);
+    return;
+  }
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+
+  toast.style.display = 'block';
+  toast.style.opacity = '0';
+  toast.style.transform = 'translate(-50%, -10px)';
+
+  if (type === 'error') {
+    toast.style.background = '#DC2626';
+    toast.style.color = '#FFFFFF';
+  } else if (type === 'info') {
+    toast.style.background = '#1E293B';
+    toast.style.color = '#FFFFFF';
+  } else {
+    toast.style.background = '#10B981';
+    toast.style.color = '#FFFFFF';
+  }
+
+  toast.innerHTML = message;
+
+  setTimeout(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translate(-50%, 0)';
+  }, 10);
+
+  toastTimeout = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, -10px)';
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 300);
+  }, 3500);
+}
+
+// Helper: Check server status and sync meals from /api/meals
+async function checkServerStatusAndSyncMeals() {
+  try {
+    const res = await fetch('/api/meals', { method: 'GET' });
+    if (res.ok) {
+      const serverMeals = await res.json();
+      if (Array.isArray(serverMeals) && serverMeals.length > 0) {
+        INITIAL_MEALS = serverMeals;
+        persistMeals(false); // Cache locally without re-posting
+        isServerPersistenceActive = true;
+        updatePersistenceStatusUI();
+        if (activeTab === 'admin') renderAdminMealsList();
+        renderDashboard();
+        console.log(`[SYNC] Loaded ${serverMeals.length} meals from persistent server API.`);
+        return;
+      }
+    }
+  } catch (e) {
+    // Server not running or static host
+  }
+  isServerPersistenceActive = false;
+  updatePersistenceStatusUI();
+}
+
+function updatePersistenceStatusUI() {
+  const dot = document.getElementById('persistenceStatusDot');
+  const text = document.getElementById('persistenceStatusText');
+  if (!dot || !text) return;
+
+  if (isServerPersistenceActive) {
+    dot.style.background = '#10B981';
+    text.textContent = 'Server Auto-Save: Active (meals.js)';
+    text.setAttribute('title', 'Any edits you make are automatically and permanently saved to meals.js on the server disk.');
+  } else {
+    dot.style.background = '#F59E0B';
+    text.textContent = 'Local Mode (Click Export or GitHub Sync)';
+    text.setAttribute('title', 'Running on static client. Use Export meals.js or GitHub Sync to save permanently.');
+  }
+}
+
+// Helper: Save all meals permanently (localStorage + Server Disk API)
+function persistMeals(syncToServer = true) {
+  try {
+    localStorage.setItem('mp_all_meals', JSON.stringify(INITIAL_MEALS));
+    localStorage.setItem('mp_custom_meals', JSON.stringify(INITIAL_MEALS));
+  } catch (e) {
+    console.error("Failed to save meals to localStorage:", e);
+  }
+
+  if (syncToServer) {
+    fetch('/api/meals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(INITIAL_MEALS)
+    }).then(res => {
+      if (res.ok) {
+        isServerPersistenceActive = true;
+        updatePersistenceStatusUI();
+        console.log("[DISK PERSISTENCE] Successfully saved to server disk (meals.js).");
+      }
+    }).catch(err => {
+      // Offline or static host
+    });
+  }
 }
 
 // Helper: Get Today's Date String (YYYY-MM-DD)
@@ -152,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   renderCategorizedKeywords();
   updateBottomNavVisibility();
+  checkServerStatusAndSyncMeals();
 
   if (!isLoggedIn) {
     showScreen('screenLogin');
@@ -226,6 +335,7 @@ window.openAdminScreen = function() {
   activeTab = 'admin';
   updateNavTabStyles();
   renderAdminMealsList();
+  updatePersistenceStatusUI();
   showScreen('screenAdmin');
 };
 
@@ -432,8 +542,9 @@ function renderAdminMealsList(filteredList = null) {
   container.innerHTML = '';
 
   mealsToDisplay.forEach((meal) => {
-    // Find absolute index in INITIAL_MEALS
+    // Find absolute index and ID in INITIAL_MEALS
     const actualIndex = INITIAL_MEALS.indexOf(meal);
+    const mealId = meal.id !== undefined ? String(meal.id) : String(actualIndex);
     
     // Format tags
     const country = (meal.keywords && meal.keywords.countries && meal.keywords.countries[0]) || 'Thai';
@@ -451,13 +562,13 @@ function renderAdminMealsList(filteredList = null) {
         </div>
       </div>
       <div class="admin-meal-actions">
-        <button class="btn-icon-edit" onclick="openEditMealModal(${actualIndex})" title="Edit meal details">
+        <button class="btn-icon-edit" onclick="openEditMealModal(${actualIndex}, '${mealId}')" title="Edit meal details">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
         </button>
-        <button class="btn-icon-delete" onclick="deleteMeal(${actualIndex})" title="Delete meal">
+        <button class="btn-icon-delete" onclick="deleteMeal(${actualIndex}, '${mealId}')" title="Delete meal">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -502,11 +613,23 @@ function updateImagePreview(inputId, imgId) {
 // ============================================================
 // EDIT MEAL MODAL (EDIT EVERYTHING)
 // ============================================================
-function openEditMealModal(index) {
-  const meal = INITIAL_MEALS[index];
+function openEditMealModal(index, id = null) {
+  let meal = null;
+  if (id !== null && id !== undefined && id !== '') {
+    meal = INITIAL_MEALS.find(m => String(m.id) === String(id));
+  }
+  if (!meal && index !== null && index !== undefined && !isNaN(index)) {
+    meal = INITIAL_MEALS[index];
+  }
   if (!meal) return;
 
-  document.getElementById('editMealIndex').value = index;
+  const actualIndex = INITIAL_MEALS.indexOf(meal);
+  document.getElementById('editMealIndex').value = actualIndex;
+  const idField = document.getElementById('editMealId');
+  if (idField) {
+    idField.value = meal.id !== undefined ? meal.id : '';
+  }
+
   document.getElementById('editMealName').value = meal.name || '';
   document.getElementById('editMealDesc').value = meal.description || '';
   document.getElementById('editMealCal').value = meal.calories || 450;
@@ -550,10 +673,19 @@ function closeEditMealModal() {
 
 function saveMealEdits(event) {
   event.preventDefault();
-  const index = parseInt(document.getElementById('editMealIndex').value);
+  const idVal = document.getElementById('editMealId') ? document.getElementById('editMealId').value.trim() : '';
+  let index = -1;
+
+  if (idVal) {
+    index = INITIAL_MEALS.findIndex(m => String(m.id) === idVal);
+  }
+  if (index === -1) {
+    index = parseInt(document.getElementById('editMealIndex').value);
+  }
   if (isNaN(index) || !INITIAL_MEALS[index]) return;
 
   const meal = INITIAL_MEALS[index];
+  const oldName = meal.name;
 
   meal.name = document.getElementById('editMealName').value.trim();
   meal.description = document.getElementById('editMealDesc').value.trim();
@@ -574,8 +706,23 @@ function saveMealEdits(event) {
   meal.allergens = [...currentEditAllergens];
   meal.dietary_tags = [...currentEditDietary];
 
-  persistMeals();
+  // Save permanently to localStorage and server disk
+  persistMeals(true);
   closeEditMealModal();
+
+  // If active in todayMeals, update log entries
+  let updatedInToday = false;
+  todayMeals.forEach(tm => {
+    if (tm.name === oldName || (meal.id !== undefined && String(tm.id) === String(meal.id))) {
+      tm.name = meal.name;
+      tm.calories = meal.calories;
+      tm.image_url = meal.image_url;
+      updatedInToday = true;
+    }
+  });
+  if (updatedInToday) {
+    localStorage.setItem('mp_today_meals', JSON.stringify(todayMeals));
+  }
 
   // Refresh Views
   if (adminSearchQuery) {
@@ -585,7 +732,10 @@ function saveMealEdits(event) {
   }
   renderDashboard();
 
-  alert(`Successfully updated "${meal.name}"!`);
+  const msg = isServerPersistenceActive
+    ? `✅ "${meal.name}" saved permanently to meals.js on server!`
+    : `✅ "${meal.name}" updated! Saved in browser storage. (Use Export or GitHub Sync for cloud)`;
+  showAppToast(msg, 'success');
 }
 
 // ============================================================
@@ -635,7 +785,7 @@ function saveNewMeal(event) {
   };
 
   INITIAL_MEALS.unshift(newMeal); // Add to top
-  persistMeals();
+  persistMeals(true);
 
   document.getElementById('formAddMeal').reset();
   closeAddMealModal();
@@ -643,17 +793,27 @@ function saveNewMeal(event) {
   renderAdminMealsList();
   renderDashboard();
 
-  alert(`"${newMeal.name}" has been added to the catalog!`);
+  const msg = isServerPersistenceActive
+    ? `✅ "${newMeal.name}" created and saved permanently to meals.js!`
+    : `✅ "${newMeal.name}" added to catalog! Saved in browser storage.`;
+  showAppToast(msg, 'success');
 }
 
 // Delete Meal from Catalog
-function deleteMeal(index) {
-  const meal = INITIAL_MEALS[index];
-  if (!meal) return;
+function deleteMeal(index, id = null) {
+  let actualIndex = -1;
+  if (id !== null && id !== undefined && id !== '') {
+    actualIndex = INITIAL_MEALS.findIndex(m => String(m.id) === String(id));
+  }
+  if (actualIndex === -1 && index !== null && index !== undefined && !isNaN(index)) {
+    actualIndex = parseInt(index);
+  }
+  if (isNaN(actualIndex) || !INITIAL_MEALS[actualIndex]) return;
 
-  if (confirm(`Are you sure you want to delete "${meal.name}" from the catalog?`)) {
-    INITIAL_MEALS.splice(index, 1);
-    persistMeals();
+  const meal = INITIAL_MEALS[actualIndex];
+  if (confirm(`Are you sure you want to permanently delete "${meal.name}" from the catalog?`)) {
+    INITIAL_MEALS.splice(actualIndex, 1);
+    persistMeals(true);
 
     if (adminSearchQuery) {
       handleAdminSearch(adminSearchQuery);
@@ -661,6 +821,11 @@ function deleteMeal(index) {
       renderAdminMealsList();
     }
     renderDashboard();
+
+    const msg = isServerPersistenceActive
+      ? `🗑️ Deleted "${meal.name}" permanently from meals.js.`
+      : `🗑️ Deleted "${meal.name}" from catalog.`;
+    showAppToast(msg, 'info');
   }
 }
 
@@ -770,13 +935,16 @@ function importSpoonacularMeal(name, calories, img, desc) {
   };
 
   INITIAL_MEALS.unshift(newMeal);
-  persistMeals();
+  persistMeals(true);
   closeImportModal();
 
   renderAdminMealsList();
   renderDashboard();
 
-  alert(`Successfully imported "${name}" into the meal catalog!`);
+  const msg = isServerPersistenceActive
+    ? `✅ "${name}" imported and saved permanently to meals.js!`
+    : `✅ "${name}" imported into catalog! Saved in browser storage.`;
+  showAppToast(msg, 'success');
 }
 
 // ============================================================
@@ -1531,6 +1699,216 @@ async function showForgotPasswordScreen() {
   showScreen('screenForgotPassword');
 }
 
+// ============================================================
+// PERMANENT PERSISTENCE & GITHUB SYNC
+// ============================================================
+
+function downloadMealsJs() {
+  const formattedJson = JSON.stringify(INITIAL_MEALS, null, 2);
+  const content = `const DEFAULT_MEALS = ${formattedJson};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n`;
+  const blob = new Blob([content], { type: 'application/javascript;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'meals.js';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showAppToast('💾 Downloaded updated meals.js! Commit this file to your repo to update GitHub Pages.', 'info');
+}
+
+function exportMealsJson() {
+  const blob = new Blob([JSON.stringify(INITIAL_MEALS, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'meals_catalog.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showAppToast('📥 Exported catalog to meals_catalog.json', 'info');
+}
+
+function handleImportJsonFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data) && data.length > 0) {
+        INITIAL_MEALS = data;
+        persistMeals(true);
+        renderAdminMealsList();
+        renderDashboard();
+        closeBackupModal();
+        showAppToast(`✅ Successfully imported ${data.length} meals into catalog!`, 'success');
+      } else {
+        alert('Invalid JSON file format. Must be a JSON array of meals.');
+      }
+    } catch (err) {
+      alert(`Failed to parse JSON file: ${err.message}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function confirmResetCatalog() {
+  if (confirm('Are you sure you want to reset the entire meal catalog back to the default 68 dishes? Any custom meals and edits will be reverted.')) {
+    INITIAL_MEALS = [...DEFAULT_MEALS];
+    persistMeals(true);
+    renderAdminMealsList();
+    renderDashboard();
+    closeBackupModal();
+    showAppToast('🔄 Catalog reset to default 68 dishes.', 'info');
+  }
+}
+
+function openGitHubSyncModal() {
+  const token = localStorage.getItem('mp_gh_token') || '';
+  const repo = localStorage.getItem('mp_gh_repo') || 'natitasinsuwan-netizen/MEALPLANNER1';
+  const branch = localStorage.getItem('mp_gh_branch') || 'main';
+
+  const tokenInput = document.getElementById('ghSyncToken');
+  const repoInput = document.getElementById('ghSyncRepo');
+  const branchInput = document.getElementById('ghSyncBranch');
+  const logEl = document.getElementById('ghSyncStatusLog');
+
+  if (tokenInput) tokenInput.value = token;
+  if (repoInput) repoInput.value = repo;
+  if (branchInput) branchInput.value = branch;
+  if (logEl) { logEl.style.display = 'none'; logEl.innerHTML = ''; }
+
+  const modal = document.getElementById('modalGitHubSync');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeGitHubSyncModal() {
+  const modal = document.getElementById('modalGitHubSync');
+  if (modal) modal.style.display = 'none';
+}
+
+function openBackupModal() {
+  const modal = document.getElementById('modalBackup');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeBackupModal() {
+  const modal = document.getElementById('modalBackup');
+  if (modal) modal.style.display = 'none';
+}
+
+async function performGitHubSync() {
+  const tokenInput = document.getElementById('ghSyncToken');
+  const repoInput = document.getElementById('ghSyncRepo');
+  const branchInput = document.getElementById('ghSyncBranch');
+  const msgInput = document.getElementById('ghSyncMessage');
+  const logEl = document.getElementById('ghSyncStatusLog');
+
+  const token = tokenInput ? tokenInput.value.trim() : '';
+  const repo = (repoInput ? repoInput.value.trim() : '') || 'natitasinsuwan-netizen/MEALPLANNER1';
+  const branch = (branchInput ? branchInput.value.trim() : '') || 'main';
+  const commitMsg = (msgInput ? msgInput.value.trim() : '') || 'Update meal catalog via Admin screen';
+
+  if (!token) {
+    if (logEl) {
+      logEl.style.display = 'block';
+      logEl.style.background = '#FEF2F2';
+      logEl.style.color = '#DC2626';
+      logEl.style.border = '1px solid #FECACA';
+      logEl.innerHTML = '⚠️ Please enter a GitHub Personal Access Token (PAT) with <code>contents: write</code> permission.';
+    }
+    return;
+  }
+
+  localStorage.setItem('mp_gh_token', token);
+  localStorage.setItem('mp_gh_repo', repo);
+  localStorage.setItem('mp_gh_branch', branch);
+
+  if (logEl) {
+    logEl.style.display = 'block';
+    logEl.style.background = '#EFF6FF';
+    logEl.style.color = '#1D4ED8';
+    logEl.style.border = '1px solid #BFDBFE';
+    logEl.textContent = '⏳ Connecting to GitHub API and fetching existing meals.js SHA...';
+  }
+
+  try {
+    const fileUrl = `https://api.github.com/repos/${repo}/contents/meals.js?ref=${encodeURIComponent(branch)}`;
+    const getRes = await fetch(fileUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    let sha = '';
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    } else if (getRes.status === 401 || getRes.status === 403) {
+      throw new Error('Invalid GitHub token or insufficient permissions. Ensure PAT has repository contents write access.');
+    } else if (getRes.status !== 404) {
+      const errJson = await getRes.json().catch(() => ({}));
+      throw new Error(errJson.message || 'Failed to fetch existing meals.js from GitHub');
+    }
+
+    if (logEl) {
+      logEl.textContent = '⏳ Committing updated meals.js directly to GitHub main branch...';
+    }
+
+    const formattedJson = JSON.stringify(INITIAL_MEALS, null, 2);
+    const jsContent = `const DEFAULT_MEALS = ${formattedJson};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n`;
+    const base64Content = btoa(unescape(encodeURIComponent(jsContent)));
+
+    const putBody = {
+      message: commitMsg,
+      content: base64Content,
+      branch: branch
+    };
+    if (sha) {
+      putBody.sha = sha;
+    }
+
+    const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/meals.js`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(putBody)
+    });
+
+    if (!putRes.ok) {
+      const putErr = await putRes.json().catch(() => ({}));
+      throw new Error(putErr.message || `GitHub commit failed (Status ${putRes.status})`);
+    }
+
+    const putData = await putRes.json();
+    const commitSha = (putData.commit && putData.commit.sha) ? putData.commit.sha.substring(0, 7) : '';
+
+    if (logEl) {
+      logEl.style.background = '#ECFDF5';
+      logEl.style.color = '#065F46';
+      logEl.style.border = '1px solid #A7F3D0';
+      logEl.innerHTML = `🎉 <strong>Pushed successfully!</strong> (Commit <code>${commitSha}</code>)<br>The updated catalog is now permanently saved in GitHub. GitHub Pages will update in ~30 seconds!`;
+    }
+    showAppToast('🎉 Catalog pushed to GitHub successfully!', 'success');
+  } catch (err) {
+    if (logEl) {
+      logEl.style.background = '#FEF2F2';
+      logEl.style.color = '#DC2626';
+      logEl.style.border = '1px solid #FECACA';
+      logEl.innerHTML = `❌ <strong>Sync Failed:</strong> ${err.message}`;
+    }
+    showAppToast(`GitHub Sync failed: ${err.message}`, 'error');
+  }
+}
+
 // Global Window Bindings for inline HTML handlers
 window.showScreen = showScreen;
 window.showForgotPasswordScreen = showForgotPasswordScreen;
@@ -1566,3 +1944,13 @@ window.importSpoonacularMeal = importSpoonacularMeal;
 window.clearAllKeywords = clearAllKeywords;
 window.updateImagePreview = updateImagePreview;
 window.togglePasswordVisibility = togglePasswordVisibility;
+window.downloadMealsJs = downloadMealsJs;
+window.exportMealsJson = exportMealsJson;
+window.handleImportJsonFile = handleImportJsonFile;
+window.confirmResetCatalog = confirmResetCatalog;
+window.openGitHubSyncModal = openGitHubSyncModal;
+window.closeGitHubSyncModal = closeGitHubSyncModal;
+window.openBackupModal = openBackupModal;
+window.closeBackupModal = closeBackupModal;
+window.performGitHubSync = performGitHubSync;
+window.showAppToast = showAppToast;
