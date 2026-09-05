@@ -37,7 +37,7 @@ const DEFAULT_MEALS = [
     "id": 2,
     "name": "Tom Yum Goong",
     "description": "Spicy and sour Thai soup with shrimp, lemongrass, kaffir lime and chili.",
-    "image_url": "https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=800&q=80",
+    "image_url": "https://i.postimg.cc/0ySVp0C4/istockphoto-888273922-1024x1024-(1).jpg",
     "calories": 220,
     "fat_g": 6,
     "protein_g": 24,
