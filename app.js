@@ -264,7 +264,27 @@ async function autoCommitToGitHub(commitMsg = 'Admin: Update meal catalog in mea
     const formattedJson = JSON.stringify(INITIAL_MEALS, null, 2);
     const jsContent = `const DEFAULT_MEALS = ${formattedJson};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n`;
 
-    // Step 4: Create new Git Tree with both updated files
+    // Helper to upload blob reliably regardless of payload size
+    async function uploadBlob(contentStr) {
+      const bRes = await fetch(`https://api.github.com/repos/${repo}/git/blobs`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ content: contentStr, encoding: 'utf-8' })
+      });
+      if (!bRes.ok) {
+        const bErr = await bRes.json().catch(() => ({}));
+        throw new Error(bErr.message || `Blob upload failed (HTTP ${bRes.status})`);
+      }
+      const bData = await bRes.json();
+      return bData.sha;
+    }
+
+    const [jsonBlobSha, jsBlobSha] = await Promise.all([
+      uploadBlob(formattedJson),
+      uploadBlob(jsContent)
+    ]);
+
+    // Step 4: Create new Git Tree with blob references
     const treePayload = {
       base_tree: baseTreeSha,
       tree: [
@@ -272,13 +292,13 @@ async function autoCommitToGitHub(commitMsg = 'Admin: Update meal catalog in mea
           path: 'meals.json',
           mode: '100644',
           type: 'blob',
-          content: formattedJson
+          sha: jsonBlobSha
         },
         {
           path: 'meals.js',
           mode: '100644',
           type: 'blob',
-          content: jsContent
+          sha: jsBlobSha
         }
       ]
     };

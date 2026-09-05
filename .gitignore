@@ -33,6 +33,7 @@ dist
 # Environment files (comprehensive coverage)
 
 *token.json*
+.github_token
 *credentials.json*
 
 # Logs and debug files

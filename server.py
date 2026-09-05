@@ -66,15 +66,28 @@ def sync_to_github_background(meals_data, message="Admin: Update meal catalog vi
                 commit_data = json.loads(resp.read().decode("utf-8"))
                 tree_sha = commit_data["tree"]["sha"]
 
-            # 3. Create tree
+            # 3. Create blobs for meals.json and meals.js
             formatted_json = json.dumps(meals_data, indent=2, ensure_ascii=False)
             js_content = f"const DEFAULT_MEALS = {formatted_json};\n\nlet INITIAL_MEALS = [...DEFAULT_MEALS];\n"
+
+            def _create_blob(content_str):
+                b_req = urllib.request.Request(
+                    f"https://api.github.com/repos/{GITHUB_REPO}/git/blobs",
+                    data=json.dumps({"content": content_str, "encoding": "utf-8"}).encode("utf-8"),
+                    headers=headers,
+                    method="POST"
+                )
+                with urllib.request.urlopen(b_req) as b_resp:
+                    return json.loads(b_resp.read().decode("utf-8"))["sha"]
+
+            json_blob_sha = _create_blob(formatted_json)
+            js_blob_sha = _create_blob(js_content)
 
             tree_payload = {
                 "base_tree": tree_sha,
                 "tree": [
-                    {"path": "meals.json", "mode": "100644", "type": "blob", "content": formatted_json},
-                    {"path": "meals.js", "mode": "100644", "type": "blob", "content": js_content}
+                    {"path": "meals.json", "mode": "100644", "type": "blob", "sha": json_blob_sha},
+                    {"path": "meals.js", "mode": "100644", "type": "blob", "sha": js_blob_sha}
                 ]
             }
             req = urllib.request.Request(
