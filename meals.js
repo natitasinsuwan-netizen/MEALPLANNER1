@@ -1,5 +1,248 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789472940107,
+    "name": "Pork&Poblano Enchiladas",
+    "description": "with Pico de Gallo and crame",
+    "calories": 800,
+    "protein_g": 37,
+    "carbs_g": 52,
+    "fat_g": 47,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Mexican"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Rice"
+      ],
+      "protein": [
+        "Pork"
+      ]
+    },
+    "allergens": [
+      "soy",
+      "dairy"
+    ],
+    "dietary_tags": []
+  },
+  {
+    "id": 1789472634113,
+    "name": "Cheesy Beef Tostadas",
+    "description": "with green pepper, tomatoes salsa, and hot sauce crema",
+    "calories": 950,
+    "protein_g": 42,
+    "carbs_g": 52,
+    "fat_g": 54,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Mexican"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Bread"
+      ],
+      "protein": [
+        "Beef"
+      ]
+    },
+    "allergens": [
+      "soy",
+      "dairy"
+    ],
+    "dietary_tags": []
+  },
+  {
+    "id": 1789472443054,
+    "name": "Masala-Spiced Chicken&Cucumber raita",
+    "description": "with curry roasted cauliflower and carrots",
+    "calories": 400,
+    "protein_g": 37,
+    "carbs_g": 26,
+    "fat_g": 17,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Indian"
+      ],
+      "cooking_methods": [
+        "Grill"
+      ],
+      "carbs": [
+        "Low-Carb"
+      ],
+      "protein": [
+        "Chicken"
+      ]
+    },
+    "allergens": [
+      "dairy"
+    ],
+    "dietary_tags": []
+  },
+  {
+    "id": 1789472212331,
+    "name": "Lentil Dal&Lamp Chops",
+    "description": "with Spiced Butter Naan&Lemony Yoghurt Sauce",
+    "calories": 1489,
+    "protein_g": 89,
+    "carbs_g": 114,
+    "fat_g": 72,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Indian"
+      ],
+      "cooking_methods": [
+        "Stew"
+      ],
+      "carbs": [
+        "Bread"
+      ],
+      "protein": [
+        "Pork"
+      ]
+    },
+    "allergens": [
+      "dairy"
+    ],
+    "dietary_tags": []
+  },
+  {
+    "id": 1789472067397,
+    "name": "Indian-Style Butter Chicken&Rice",
+    "description": "with dark Meat Chicken, rice and cheesy garlic naan",
+    "calories": 960,
+    "protein_g": 43,
+    "carbs_g": 108,
+    "fat_g": 36,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Indian"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Rice"
+      ],
+      "protein": [
+        "Chicken"
+      ]
+    },
+    "allergens": [
+      "dairy"
+    ],
+    "dietary_tags": []
+  },
+  {
+    "id": 1789471874537,
+    "name": "Sun-dried Tomato Spaghetti",
+    "description": "with fresh herbs almonds and parmesan",
+    "calories": 630,
+    "protein_g": 19,
+    "carbs_g": 86,
+    "fat_g": 25,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Italian"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Pasta"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "nuts",
+      "dairy"
+    ],
+    "dietary_tags": [
+      "vegetarian"
+    ]
+  },
+  {
+    "id": 1789471741780,
+    "name": "Roasted Chickpea&Kale salad",
+    "description": "with grape tomatoes and garlicky croutons",
+    "calories": 980,
+    "protein_g": 21,
+    "carbs_g": 76,
+    "fat_g": 65,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Italian"
+      ],
+      "cooking_methods": [
+        "Steam"
+      ],
+      "carbs": [
+        "Low-Carb"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "soy",
+      "egg",
+      "dairy"
+    ],
+    "dietary_tags": [
+      "vegetarian"
+    ]
+  },
+  {
+    "id": 1789471394294,
+    "name": "Silky Sicilian Penne",
+    "description": "tossed with zucchini mushrooms and tomatoes",
+    "calories": 690,
+    "protein_g": 20,
+    "carbs_g": 85,
+    "fat_g": 34,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Italian"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Pasta"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "dairy"
+    ],
+    "dietary_tags": [
+      "vegetarian"
+    ]
+  },
+  {
     "id": 1,
     "name": "Pad Thai",
     "description": "Stir-fried rice noodles with egg, tofu, peanuts, lime and tamarind sauce.",
