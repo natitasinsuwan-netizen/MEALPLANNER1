@@ -35,7 +35,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 110,
     "fat_g": 35,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/d35c3HLr/IMG-4153.jpg",
     "keywords": {
       "countries": [
         "Japanese"
@@ -64,7 +64,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 90,
     "fat_g": 22,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/yxLCxQkR/IMG-4152.jpg",
     "keywords": {
       "countries": [
         "Japanese"
@@ -93,7 +93,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 10,
     "fat_g": 5,
     "low_fat": true,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/cCFGC9rt/IMG-4151.jpg",
     "keywords": {
       "countries": [
         "Vietnamese"
@@ -122,7 +122,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 15,
     "fat_g": 8,
     "low_fat": true,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/Xqs6qHpG/IMG-4150.jpg",
     "keywords": {
       "countries": [
         "Vietnamese"
