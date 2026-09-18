@@ -1509,7 +1509,7 @@ const DEFAULT_MEALS = [
     "id": 34,
     "name": "Vietnamese Banh Mi Pork",
     "description": "Crispy French baguette filled with seasoned roast pork, pickled daikon, pate, cucumber and cilantro.",
-    "image_url": "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&q=80",
+    "image_url": "https://i.postimg.cc/9Q05rDn2/IMG-4370.jpg",
     "calories": 490,
     "fat_g": 18,
     "protein_g": 26,
@@ -1866,7 +1866,7 @@ const DEFAULT_MEALS = [
     "id": 45,
     "name": "Chicken Fajitas",
     "description": "Sizzling seasoned chicken strips with charred bell peppers, onions, salsa and warm tortillas.",
-    "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80",
+    "image_url": "https://i.postimg.cc/tC5n9MLt/IMG-4378.jpg",
     "calories": 430,
     "fat_g": 14,
     "protein_g": 35,
@@ -1892,7 +1892,7 @@ const DEFAULT_MEALS = [
     "allergens": [
       "gluten"
     ],
-    "low_fat": true
+    "low_fat": false
   },
   {
     "id": 46,
