@@ -1,5 +1,34 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789733191189,
+    "name": "Gyudon",
+    "description": "Beef with sweet soy sauce and onion with rice",
+    "calories": 700,
+    "protein_g": 26,
+    "carbs_g": 90,
+    "fat_g": 22,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Japanese"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Rice"
+      ],
+      "protein": [
+        "Beef"
+      ]
+    },
+    "allergens": [
+      "soy"
+    ],
+    "dietary_tags": []
+  },
+  {
     "id": 1789733042574,
     "name": "Spring Rolls",
     "description": "Rice paper wrap with vegetables, shrimp and boiled pork",
