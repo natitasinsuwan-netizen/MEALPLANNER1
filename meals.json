@@ -1,5 +1,40 @@
 [
   {
+    "id": 1789717471156,
+    "name": "Mixed Berry Chai Seed Pudding",
+    "description": "chai seeds whisk with almond milk, fresh mixed fruits",
+    "calories": 240,
+    "protein_g": 6,
+    "carbs_g": 29,
+    "fat_g": 11,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "American"
+      ],
+      "cooking_methods": [
+        "Boil"
+      ],
+      "carbs": [
+        "Low-Carb"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "nuts"
+    ],
+    "dietary_tags": [
+      "halal",
+      "gluten-free",
+      "dairy-free",
+      "kosher",
+      "vegetarian"
+    ]
+  },
+  {
     "id": 1789717271359,
     "name": "Peanut Butter Banana Oatmeal Pancakes",
     "description": "healthy pancake without white flour or refined sugar",
