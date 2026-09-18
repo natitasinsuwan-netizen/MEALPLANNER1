@@ -1,5 +1,36 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789732071377,
+    "name": "Goong Ob Woon Sen",
+    "description": "Glass noodle with shrimp",
+    "calories": 350,
+    "protein_g": 18,
+    "carbs_g": 55,
+    "fat_g": 8,
+    "low_fat": true,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Thai"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Noodles"
+      ],
+      "protein": [
+        "Seafood"
+      ]
+    },
+    "allergens": [
+      "shellfish"
+    ],
+    "dietary_tags": [
+      "dairy-free"
+    ]
+  },
+  {
     "id": 1789731957495,
     "name": "Khao Moo Daeng",
     "description": "Barbecued Pork with Sweet red sauce over rice",
