@@ -8,7 +8,7 @@
     "carbs_g": 52,
     "fat_g": 47,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/kgwwSDKd/IMG-4124.jpg",
     "keywords": {
       "countries": [
         "Mexican"
@@ -38,7 +38,7 @@
     "carbs_g": 52,
     "fat_g": 54,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/NjbbXLmc/IMG-4123.jpg",
     "keywords": {
       "countries": [
         "Mexican"
@@ -1232,7 +1232,7 @@
     "id": 31,
     "name": "Mapo Tofu",
     "description": "Silken tofu set in spicy and numbing chili bean paste with minced beef and Sichuan pepper.",
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
+    "image_url": "https://i.postimg.cc/d02snPQk/IMG-4366.jpg",
     "calories": 380,
     "fat_g": 20,
     "protein_g": 24,
@@ -1248,8 +1248,7 @@
         "Rice"
       ],
       "protein": [
-        "Tofu",
-        "Beef"
+        "Tofu"
       ]
     },
     "dietary_tags": [
