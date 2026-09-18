@@ -97,7 +97,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 114,
     "fat_g": 72,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/P5KKDNYn/IMG-4121.jpg",
     "keywords": {
       "countries": [
         "Indian"
@@ -126,7 +126,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 108,
     "fat_g": 36,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/Z5jjN0pk/IMG-4120.jpg",
     "keywords": {
       "countries": [
         "Indian"
@@ -155,7 +155,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 86,
     "fat_g": 25,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/3x99GWpP/IMG-4119.jpg",
     "keywords": {
       "countries": [
         "Italian"
@@ -187,7 +187,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 76,
     "fat_g": 65,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/Hk33Mj5F/IMG-4118.jpg",
     "keywords": {
       "countries": [
         "Italian"
