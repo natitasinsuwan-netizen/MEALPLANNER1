@@ -1704,7 +1704,7 @@ const DEFAULT_MEALS = [
     "id": 40,
     "name": "Lamb Biryani",
     "description": "Fragrant basmati rice layered with slow-cooked spiced lamb shank, saffron and fried onions.",
-    "image_url": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80",
+    "image_url": "https://i.postimg.cc/c4Z8yS5b/IMG-4379.jpg",
     "calories": 640,
     "fat_g": 26,
     "protein_g": 38,
