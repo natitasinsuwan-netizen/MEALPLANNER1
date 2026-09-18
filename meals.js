@@ -1,5 +1,42 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789716966656,
+    "name": "Greek Yogurt Parfait",
+    "description": "greek yogurt with fresh fruits, almond, and honey",
+    "calories": 240,
+    "protein_g": 18,
+    "carbs_g": 20,
+    "fat_g": 7,
+    "low_fat": true,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "American"
+      ],
+      "cooking_methods": [
+        "Boil"
+      ],
+      "carbs": [
+        "Low-Carb"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "nuts",
+      "dairy"
+    ],
+    "dietary_tags": [
+      "halal",
+      "gluten-free",
+      "dairy-free",
+      "kosher",
+      "vegetarian",
+      "vegan"
+    ]
+  },
+  {
     "id": 1789716830423,
     "name": "Avocado Toast with Egg",
     "description": "mash avocado with poached egg on the toast",
