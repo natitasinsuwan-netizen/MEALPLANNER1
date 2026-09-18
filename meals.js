@@ -87,7 +87,7 @@ const DEFAULT_MEALS = [
   {
     "id": 1789733042574,
     "name": "Spring Rolls",
-    "description": "Rice paper wrap with vegetables, shrimp and boiled pork",
+    "description": "Rice paper wrap with vegetables, shrimp and boiled pork (per roll)",
     "calories": 120,
     "protein_g": 6,
     "carbs_g": 10,
@@ -116,7 +116,7 @@ const DEFAULT_MEALS = [
   {
     "id": 1789732595102,
     "name": "Deep-Fried Spring Rolls",
-    "description": "crispy deep fried spring rolls filled with vegetables and minced pork with sauce",
+    "description": "crispy deep fried spring rolls filled with vegetables and minced pork with sauce (per roll)",
     "calories": 150,
     "protein_g": 2,
     "carbs_g": 15,
@@ -298,7 +298,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 6,
     "fat_g": 2,
     "low_fat": true,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/yx1zV4Yh/IMG-4143.jpg",
     "keywords": {
       "countries": [
         "Thai"
