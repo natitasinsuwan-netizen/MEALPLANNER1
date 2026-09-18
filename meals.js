@@ -2377,7 +2377,7 @@ const DEFAULT_MEALS = [
         "Grill"
       ],
       "carbs": [
-        "Bread"
+        "Low-Carb"
       ],
       "protein": [
         "Chicken"
@@ -2390,7 +2390,7 @@ const DEFAULT_MEALS = [
     "allergens": [
       "dairy"
     ],
-    "low_fat": true
+    "low_fat": false
   },
   {
     "id": 67,
