@@ -1,5 +1,41 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789716539458,
+    "name": "Overnight Oats",
+    "description": "oats with milk or yoghurt, chia seeds, and fruits.",
+    "calories": 300,
+    "protein_g": 11,
+    "carbs_g": 49,
+    "fat_g": 7,
+    "low_fat": true,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "American"
+      ],
+      "cooking_methods": [
+        "Boil"
+      ],
+      "carbs": [
+        "Low-Carb"
+      ],
+      "protein": [
+        "Tofu"
+      ]
+    },
+    "allergens": [
+      "dairy"
+    ],
+    "dietary_tags": [
+      "halal",
+      "gluten-free",
+      "dairy-free",
+      "kosher",
+      "vegetarian",
+      "vegan"
+    ]
+  },
+  {
     "id": 1789472940107,
     "name": "Pork&Poblano Enchiladas",
     "description": "with Pico de Gallo and crame",
@@ -1567,10 +1603,10 @@ const DEFAULT_MEALS = [
         "Indian"
       ],
       "cooking_methods": [
-        "Boil"
+        "Stew"
       ],
       "carbs": [
-        "Rice"
+        "Bread"
       ],
       "protein": [
         "Tofu"
@@ -1580,9 +1616,9 @@ const DEFAULT_MEALS = [
       "vegan",
       "vegetarian",
       "gluten-free",
-      "dairy-free",
       "halal",
-      "kosher"
+      "kosher",
+      "dairy-free"
     ],
     "allergens": [],
     "low_fat": true
