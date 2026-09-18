@@ -1,5 +1,34 @@
 const DEFAULT_MEALS = [
   {
+    "id": 1789731957495,
+    "name": "Khao Moo Daeng",
+    "description": "Barbecued Pork with Sweet red sauce over rice",
+    "calories": 650,
+    "protein_g": 22,
+    "carbs_g": 85,
+    "fat_g": 15,
+    "low_fat": false,
+    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "keywords": {
+      "countries": [
+        "Thai"
+      ],
+      "cooking_methods": [
+        "Stir-Fry"
+      ],
+      "carbs": [
+        "Rice"
+      ],
+      "protein": [
+        "Pork"
+      ]
+    },
+    "allergens": [],
+    "dietary_tags": [
+      "dairy-free"
+    ]
+  },
+  {
     "id": 1789731867997,
     "name": "Khao Man Gai",
     "description": "Thai Hainanese Chicken Rice",
