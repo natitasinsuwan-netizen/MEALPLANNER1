@@ -2313,7 +2313,7 @@ const DEFAULT_MEALS = [
         "Bake"
       ],
       "carbs": [
-        "Rice"
+        "Bread"
       ],
       "protein": [
         "Beef"
@@ -2344,7 +2344,7 @@ const DEFAULT_MEALS = [
         "Bake"
       ],
       "carbs": [
-        "Rice"
+        "Low-Carb"
       ],
       "protein": [
         "Fish"
@@ -2358,7 +2358,7 @@ const DEFAULT_MEALS = [
       "fish",
       "dairy"
     ],
-    "low_fat": true
+    "low_fat": false
   },
   {
     "id": 66,
