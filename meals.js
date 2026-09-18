@@ -8,7 +8,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 29,
     "fat_g": 11,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/nhrbCXPj/IMG-4376.jpg",
     "keywords": {
       "countries": [
         "American"
@@ -43,7 +43,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 48,
     "fat_g": 15,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/6pqJy8m7/IMG-4375.jpg",
     "keywords": {
       "countries": [
         "American"
@@ -79,7 +79,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 20,
     "fat_g": 7,
     "low_fat": true,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/qvqVzN5z/IMG-4374.png",
     "keywords": {
       "countries": [
         "American"
@@ -116,7 +116,7 @@ const DEFAULT_MEALS = [
     "carbs_g": 18,
     "fat_g": 18,
     "low_fat": false,
-    "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+    "image_url": "https://i.postimg.cc/Jz0VGs2h/IMG-4373.jpg",
     "keywords": {
       "countries": [
         "American"
@@ -803,13 +803,14 @@ const DEFAULT_MEALS = [
       ]
     },
     "dietary_tags": [
-      "vegan",
       "vegetarian",
       "gluten-free",
       "dairy-free",
       "halal"
     ],
-    "allergens": [],
+    "allergens": [
+      "dairy"
+    ],
     "low_fat": true
   },
   {
