@@ -15,8 +15,8 @@ When running the local server:
 
 ## ✨ Features & Functionality
 
-### 1. 🛡️ Dedicated Admin Screen (`natitasinsuwan@gmail.com`)
-- When signed in with the administrator account (`natitasinsuwan@gmail.com`), the **Admin** navigation tab (with shield icon) is automatically activated in the bottom navigation bar.
+### 1. 🛡️ Dedicated Admin Screen 
+- When signed in with the administrator account , the **Admin** navigation tab (with shield icon) is automatically activated in the bottom navigation bar.
 - **Admin Capabilities**:
   - 📋 **Catalog View**: Displays all meals in the catalog (68 authentic dishes across Thai, Japanese, Korean, Italian, Mexican, American, Chinese, Indian, Vietnamese, and European cuisines).
   - 🔍 **Real-Time Search**: Instant search filtering by meal name, keywords, country, or protein.
