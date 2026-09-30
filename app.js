@@ -22,11 +22,11 @@ function isAdmin() {
 
 // User Profile
 let profile = JSON.parse(localStorage.getItem('mp_user_profile') || JSON.stringify({
-  weight: 45,
-  height: 157,
-  birthday: '2010-05-15',
-  sex: 'female',
-  exercise: 1,
+  weight: 00,
+  height: 000,
+  birthday: '0000-00-00',
+  sex: '----',
+  exercise: 0,
   allergies: [],
   religious: [],
   ethical: []
@@ -442,9 +442,9 @@ function getAgeFromBirthday(birthdayStr) {
 // Calculate BMR using Mifflin–St Jeor formula
 function calculateBMR() {
   const age = getAgeFromBirthday(profile.birthday);
-  const weight = parseFloat(profile.weight) || 45;
-  const height = parseFloat(profile.height) || 157;
-  const sex = profile.sex || 'female';
+  const weight = parseFloat(profile.weight) || 00;
+  const height = parseFloat(profile.height) || 000;
+  const sex = profile.sex || '----';
 
   let bmr = (10 * weight) + (6.25 * height) - (5 * age);
   bmr = sex === 'male' ? bmr + 5 : bmr - 161;
@@ -471,10 +471,12 @@ function calculateTDEE() {
 
 // Energy Target Rule: Random Meal uses TDEE; Diet Planning uses BMR
 function calculateEnergyTarget() {
+  const bmr = calculateBMR();
+  const tdee = calculateTDEE();
   if (mode === 'diet') {
-    return calculateBMR();
+    return Math.max(tdee - 400, bmr);
   }
-  return calculateTDEE();
+  return tdee;
 }
 
 // ============================================================
@@ -1471,11 +1473,11 @@ function renderSettingsScreen() {
   setSettingsSex(profile.sex || 'female', false);
 
   const bDayInput = document.getElementById('settingsInputBirthday');
-  if (bDayInput) bDayInput.value = profile.birthday || '2010-05-15';
+  if (bDayInput) bDayInput.value = profile.birthday || '0000-00-00';
   const wInput = document.getElementById('settingsInputWeight');
-  if (wInput) wInput.value = profile.weight || 45;
+  if (wInput) wInput.value = profile.weight || 00;
   const hInput = document.getElementById('settingsInputHeight');
-  if (hInput) hInput.value = profile.height || 157;
+  if (hInput) hInput.value = profile.height || 000;
 
   setSettingsExercise(profile.exercise !== undefined ? profile.exercise : 1);
   renderSettingsChips();
@@ -1585,9 +1587,9 @@ function saveSettings() {
   const wInput = document.getElementById('settingsInputWeight');
   const hInput = document.getElementById('settingsInputHeight');
 
-  profile.birthday = bDayInput ? (bDayInput.value.trim() || '2010-05-15') : '2010-05-15';
-  profile.weight = wInput ? (parseFloat(wInput.value) || 45) : 45;
-  profile.height = hInput ? (parseFloat(hInput.value) || 157) : 157;
+  profile.birthday = bDayInput ? (bDayInput.value.trim() || '0000-00-00') : '0000-00-00';
+  profile.weight = wInput ? (parseFloat(wInput.value) || 00) : 00;
+  profile.height = hInput ? (parseFloat(hInput.value) || 000) : 000;
 
   localStorage.setItem('mp_user_profile', JSON.stringify(profile));
   localStorage.setItem('mp_app_mode', mode);
@@ -1672,9 +1674,9 @@ function setExercise(val, el) {
 }
 
 function submitStep2() {
-  profile.birthday = document.getElementById('inputStep2Birthday').value || '2010-05-15';
-  profile.weight = parseFloat(document.getElementById('inputStep2Weight').value) || 45;
-  profile.height = parseFloat(document.getElementById('inputStep2Height').value) || 157;
+  profile.birthday = document.getElementById('inputStep2Birthday').value || '0000-00-00';
+  profile.weight = parseFloat(document.getElementById('inputStep2Weight').value) || 00;
+  profile.height = parseFloat(document.getElementById('inputStep2Height').value) || 000;
   showScreen('screenStep3Exercise');
 }
 
